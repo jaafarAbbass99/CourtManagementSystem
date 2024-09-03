@@ -3,6 +3,8 @@
 namespace App\Services\Lawyer;
 
 use App\Models\LawyerCourt;
+use Exception;
+use Illuminate\Support\Facades\Auth;
 
 class LawyerService
 {
@@ -15,5 +17,12 @@ class LawyerService
         ]);
 
         return $data ;
+    }
+
+    public function getMyCourts()
+    {
+        return LawyerCourt::where('user_id',Auth::user()->user->id)
+                ->with('court')
+                ->get();
     }
 }

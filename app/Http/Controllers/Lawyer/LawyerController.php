@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Lawyer;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\JoinCourtRequest;
+use App\Http\Resources\CourtResource;
+use App\Http\Resources\Lawyer\MyCourtsResources;
 use App\Models\LawyerCourt;
 use App\Services\Lawyer\LawyerService;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -36,4 +39,23 @@ class LawyerController extends Controller
         return $this->sendOkResponse('تم الانضمام إلى المحكمة بنجاح.');
 
     }
+
+
+    public function showMyCourts()
+    {
+        try{
+            $data = $this->lawyerService->getMyCourts();
+            if($data->isEmpty())
+                $this->sendOkResponse('لايوجد نتائج لعرضها');
+
+            $result = MyCourtsResources::collection($data);
+            return $this->sendResponse($result,'كل محاكمي');
+            
+        }catch(Exception $e){
+            return $this->sendError(
+                $e->getMessage()
+            );
+        }
+    }
+
 }

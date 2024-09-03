@@ -8,6 +8,8 @@ Route::middleware(['auth:sanctum','check.role.Lawyer'])->prefix('/lawyer')->grou
     // 1. الانضمام إلى محكمة
     Route::post('/join-court', [LawyerController::class, 'joinCourt']);
     
+    Route::get('/my_courts', [LawyerController::class, 'showMyCourts']);
+    
     // 4. عرض الدعاوى التابعة له في كل المحاكم المنضم لها
     Route::get('/cases', [CaseController::class, 'showAllCases']);//شرط هل الدعاوى العائدة للمحامي
 
@@ -21,7 +23,9 @@ Route::middleware(['auth:sanctum','check.role.Lawyer'])->prefix('/lawyer')->grou
         // 5. عرض دعوى معينة حسب اسم المدعي والعام والمحكمة
         Route::get('/case', [CaseController::class, 'showCaseByDetails']);//كذلك + شرط الدعوى للمحامي 
         
+        
+
     });
-    
+
     Route::get('/show-case-by-number/{number_case}', [CaseController::class, 'showCaseByNumber']);
 });
