@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Lawyer\ShowCasesByStatusRequest;
 use App\Http\Requests\OpenCaseByLawyerRequest;
 use App\Http\Requests\ShowCaseByDetailsRequest;
 use App\Http\Resources\Cases\CaseResources;
 use App\Http\Resources\Cases\CasesResources;
 use App\Services\CaseService;
-
+use Exception;
 
 class CaseController extends Controller
 {
@@ -70,6 +71,38 @@ class CaseController extends Controller
         $result =  CasesResources::collection($case);
 
         return response()->json($result);
+    }
+
+    public function showCasesInCourtByStatus(ShowCasesByStatusRequest $request)
+    {
+        try{
+            $data = $this->caseService->getCasesInCourtByStatus($request->only('my_court_id','status'));
+
+            if($data->isEmpty())
+                return $this->sendOkResponse('لايوجد نتائج لعرضها');
+
+            $result = CasesResources::collection($data);
+            return $this->sendResponse($result,'كل الدعاوى ');
+            
+        }catch(Exception $e){
+            return $this->sendError(
+                $e->getMessage()
+            );
+        }
+    }
+
+    public function showCountCasesInCourtByStatus(ShowCasesByStatusRequest $request)
+    {
+        try{
+            $data = $this->caseService->getCountCasesInCourtByStatus($request->only('my_court_id','status'));
+
+            return $this->sendResponse(['count'=>$data],'عدد الدعاوى');
+            
+        }catch(Exception $e){
+            return $this->sendError(
+                $e->getMessage()
+            );
+        }
     }
 
 }

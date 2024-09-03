@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth:sanctum','check.role.Lawyer'])->prefix('/lawyer')->group(function () {
     // 1. الانضمام إلى محكمة
     Route::post('/join-court', [LawyerController::class, 'joinCourt']);
-    
+
     Route::get('/my_courts', [LawyerController::class, 'showMyCourts']);
     
     // 4. عرض الدعاوى التابعة له في كل المحاكم المنضم لها
@@ -23,6 +23,10 @@ Route::middleware(['auth:sanctum','check.role.Lawyer'])->prefix('/lawyer')->grou
         // 5. عرض دعوى معينة حسب اسم المدعي والعام والمحكمة
         Route::get('/case', [CaseController::class, 'showCaseByDetails']);//كذلك + شرط الدعوى للمحامي 
         
+        // عرض الدعاوى المكتسبة في محكمة
+        Route::get('/my_cases_in_court', [CaseController::class, 'showCasesInCourtByStatus']);
+        
+        Route::get('/count_my_cases_in_court', [CaseController::class, 'showCountCasesInCourtByStatus']);
         
 
     });

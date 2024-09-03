@@ -86,9 +86,20 @@ class CaseService
                 ->with('case.caseType')
                 ->get();
 
-        // return Cases::where('full_number',$number)->with('caseType')->first();
     }
 
+    public function getCasesInCourtByStatus($data){
+        return PowerOfAttorney::where('lawyerCourt_id', $data['my_court_id'])
+                ->where('get',$data['status'])
+                ->with('case')
+                ->get();
+    }
 
+    public function getCountCasesInCourtByStatus($data){
+        return PowerOfAttorney::where('lawyerCourt_id', $data['my_court_id'])
+                ->where('get',$data['status'])
+                ->count();
+                
+    }
 
 }
