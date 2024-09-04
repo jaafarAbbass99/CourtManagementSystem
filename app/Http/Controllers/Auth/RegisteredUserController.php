@@ -48,7 +48,7 @@ class RegisteredUserController extends Controller
         ])
         ->getInfoUser();
 
-        //$this->userRepository->sendEmail();
+        $this->userRepository->sendEmail();
 
         return $this->sendResponse($data,"register successful");
 

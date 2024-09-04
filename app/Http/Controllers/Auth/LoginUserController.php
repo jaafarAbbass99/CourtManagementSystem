@@ -2,21 +2,19 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Enums\Role;
+use App\Enums\Status;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Resources\AccountUserResource;
 use App\Http\Resources\ProfileUserResource;
-use App\Repository\Eloquent\User\UserRepositoryInterface;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Auth;
+
 
 class LoginUserController extends Controller
 {
     
     
-    public function store(LoginRequest $request): JsonResponse
+    public function store(LoginRequest $request)
     {
 
         $request->authenticate();
@@ -26,27 +24,30 @@ class LoginUserController extends Controller
         $account->tokens()->delete();
         $token = $account->createToken('auth_token')->plainTextToken;
         
-        $user = $account->user()->first();
+        $user = $account->user;
         
-        // if ($account->hasVerifiedEmail() && $user->role== 'User')
-        // {
-        //     $this->makeAccountIsApproved($account);
-        // }
+        if(!$account->hasVerifiedEmail())
+            return $this->sendError(' لا يمكنك تسجيل الدخول, تحقق من الايميل اولأ');
+        
+        if($user->role == Role::USER || $user->role == Role::ADMIN ){
+            $this->makeAccountIsApproved($account);
+        }
+
+        if(!$account->isApproved())
+            return $this->sendError('الحساب : '. __('status.'.$account->status) );
 
         $data = [
             'token' => $token,
             'profile' => new ProfileUserResource($user),
             'account' => new AccountUserResource($account),
         ];
-
-        return $this->sendResponse($data, 'Login successful');  
+        return $this->sendResponse($data, 'Login successful'); 
     }
 
     private function makeAccountIsApproved($account)
     {
-        $account->status = "Approved";
+        $account->status = Status::APPROVED->value;
         $account->save();
     }
-
-
+    
 }
