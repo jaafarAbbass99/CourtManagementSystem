@@ -23,9 +23,10 @@ Route::middleware(['auth:sanctum','check.role.Lawyer'])->prefix('/lawyer')->grou
         // 5. عرض دعوى معينة حسب اسم المدعي والعام والمحكمة
         Route::get('/case', [CaseController::class, 'showCaseByDetails']);//كذلك + شرط الدعوى للمحامي 
         
-        // عرض الدعاوى المكتسبة في محكمة
+        // عرض الدعاوى حسب الحالة في محكمة
         Route::get('/my_cases_in_court', [CaseController::class, 'showCasesInCourtByStatus']);
         
+        //عرض عدد الداوى حسب حالتها
         Route::get('/count_my_cases_in_court', [CaseController::class, 'showCountCasesInCourtByStatus']);
         
 

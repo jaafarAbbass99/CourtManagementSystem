@@ -27,7 +27,7 @@ class JudgeSectionService
     // جلب جميع القضاة في قسم محدد
     public function getJudgesBySection(int $sectionId)
     {
-        return JudgeSection::with(['judge', 'court'])
+        return JudgeSection::with(['judge', 'court','section'])
             ->where('section_id', $sectionId)
             ->get();
     }
