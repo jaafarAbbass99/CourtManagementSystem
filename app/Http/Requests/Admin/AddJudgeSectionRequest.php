@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use App\Models\JudgeSection;
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 
 class AddJudgeSectionRequest extends FormRequest
@@ -10,7 +11,8 @@ class AddJudgeSectionRequest extends FormRequest
 
     public function authorize(): bool
     {
-        return true;
+        //التحقق من ان المستخدم الذي يضاف هو قاضي 
+        return User::where('id','user_id')->where('role',2)->exists();
     }
 
     public function rules(): array
