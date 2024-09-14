@@ -20,11 +20,11 @@ class CourtTypeSeeder extends Seeder
         $alp_ = Court::where('name','محكمة مدنية')
                     ->where('province','حلب')->first()->id;
                     
-        CourtType::create(['type' => 'بدائية', 'type_form' => 'ST', 'city' => 'المزة' ,'court_id'=>$dam_ ]);
-        CourtType::create(['type' => 'استئناف', 'type_form' => 'CU', 'city' => 'المزة' , 'court_id'=>$dam_ ]);
-        CourtType::create(['type' => 'نقض', 'type_form' => 'NG', 'city' => 'المزة' , 'court_id'=>$dam_ ]);
-        CourtType::create(['type' => 'بدائية', 'type_form' => 'ST', 'city' => 'الحمدانية' , 'court_id'=>$alp_]);
-        CourtType::create(['type' => 'استئناف', 'type_form' => 'CU', 'city' => 'الحمدانية' , 'court_id'=>$alp_ ]);
-        CourtType::create(['type' => 'تنفيذ', 'type_form' => 'Em', 'city' => 'المزة' , 'court_id'=>$dam_]);
+        CourtType::create(['type' => 'بدائية', 'type_form' => 'ST', 'city' => 'المزة' ,'rank'=>1,'court_id'=>$dam_ ]);
+        CourtType::create(['type' => 'استئناف', 'type_form' => 'CU', 'city' => 'المزة' ,'rank'=>2, 'court_id'=>$dam_ ]);
+        CourtType::create(['type' => 'نقض', 'type_form' => 'NG', 'city' => 'المزة' ,'rank'=>3, 'court_id'=>$dam_ ]);
+        CourtType::create(['type' => 'بدائية', 'type_form' => 'ST', 'city' => 'الحمدانية' ,'rank'=>1 , 'court_id'=>$alp_]);
+        CourtType::create(['type' => 'استئناف', 'type_form' => 'CU', 'city' => 'الحمدانية' ,'rank'=>2, 'court_id'=>$alp_ ]);
+        CourtType::create(['type' => 'تنفيذ', 'type_form' => 'Em', 'city' => 'المزة' ,'rank'=>4 , 'court_id'=>$dam_]);
     }
 }

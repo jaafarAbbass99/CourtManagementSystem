@@ -15,8 +15,8 @@ class SectionResource extends JsonResource
             'section_number' => $this->section_number,
             'opening_date' => $this->created_at->format('Y-m-d'),
             'location' => $this->location,
-            'court' => new CourtResource($this->whenLoaded('court')),
-            'judges' => JudgeSectionResource::collection($this->whenLoaded('judgeSections')),
+            // 'court' => new CourtResource($this->whenLoaded('court')),
+            // 'judges' => JudgeSectionResource::collection($this->whenLoaded('judgeSections')),
         ];
     }
 }

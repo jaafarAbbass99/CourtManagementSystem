@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Lawyer;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\FileRequest;
 use App\Http\Requests\JoinCourtRequest;
 use App\Http\Resources\CourtResource;
 use App\Http\Resources\Lawyer\MyCourtsResources;
@@ -57,5 +58,10 @@ class LawyerController extends Controller
             );
         }
     }
+
+    public function uploadeCaseDocs(FileRequest $request){
+
+    }
+
 
 }

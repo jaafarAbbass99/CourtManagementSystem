@@ -10,13 +10,20 @@ class CourtType extends Model
     use HasFactory;
 
     protected $fillable = [
-         'type', 'type_form', 'city',
+         'court_id','type', 'type_form', 'city',
     ];
 
     public function court()
     {
-        return $this->belongsTo(Court::class);
+        return $this->belongsTo(Court::class,'court_id');
     }
+
+    public function judgeSections()
+    {
+        return $this->hasMany(JudgeSection::class, 'court_type_id');
+    }
+
+
 
     
 

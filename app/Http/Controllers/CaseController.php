@@ -2,16 +2,26 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AddFilesToCaseRequest;
+use App\Http\Requests\CaseJudgeIdRequest;
 use App\Http\Requests\Lawyer\ShowCasesByStatusRequest;
+use App\Http\Requests\Lawyer\ShowDetailsCaseRequest;
 use App\Http\Requests\OpenCaseByLawyerRequest;
 use App\Http\Requests\ShowCaseByDetailsRequest;
-use App\Http\Resources\Cases\CaseResources;
+use App\Http\Requests\StatusCaseCloseOpenRequest;
 use App\Http\Resources\Cases\CasesResources;
+use App\Http\Resources\Judge\Show\SessionsCaseResource;
+use App\Http\Resources\Lawyer\CaseInSectionResource as LawyerCaseInSectionResource;
+use App\Http\Resources\Lawyer\ShowDetailsCaseResource;
+use App\Models\CaseJudge;
+use App\Models\Cases;
 use App\Services\CaseService;
 use Exception;
+use Illuminate\Support\Facades\Auth;
 
 class CaseController extends Controller
 {
+    
     protected $caseService;
 
     public function __construct(CaseService $caseService)
@@ -22,19 +32,40 @@ class CaseController extends Controller
     // فتح دعوى جديدة
     public function openCase(OpenCaseByLawyerRequest $request)
     {
-        
-        $result = $this->caseService->openCase($request->all());
-        
-        if($result)
-            return $this->sendOKResponse('تم فتح الدعوى بنجاح.') ;
-        return $this->sendError('لم يتم رفع الدعوى , حاول من جديد');
+        try{
+            
+            $data = $this->caseService->openCase($request->all());
+
+            if($data)
+                return $this->sendOKResponse('تم فتح الدعوى بنجاح.') ;
+            
+        }catch(Exception $e){
+            return $this->sendErrorWithCause(
+                $e->getMessage(),'خطأ في فتح دعوى'
+            );
+        }
+    }
+
+    // addFilesToCase
+    public function addFilesToCase(AddFilesToCaseRequest $request)
+    {
+        try{
+            $data = $this->caseService->addFilesToCase($request);
+            if($data)
+                return $this->sendOKResponse('تم اضافة الملفات بنجاح.') ;
+            
+        }catch(Exception $e){
+            return $this->sendErrorWithCause(
+                $e->getMessage(),'خطأ في اضافة الملفات'
+            );
+        }
     }
 
     // عرض الدعاوى التابعة له في محكمة محددة
     public function showCasesInCourt($court_id)
     {
         $cases = $this->caseService->getCasesInCourt($court_id);
-        
+
         $result =  CasesResources::collection($cases);
         
         return $this->sendResponse($result);
@@ -64,25 +95,26 @@ class CaseController extends Controller
     public function showCaseByNumber($number_case)
     {
         $case = $this->caseService->getCaseByNumber($number_case);
-
+        
         if (!$case) {
             return response()->json(['message' => 'لم يتم العثور على الدعوى.'], 404);
         }
-        $result =  CasesResources::collection($case);
+        $result =  CasesResources::make($case);
 
-        return response()->json($result);
+        return $this->sendResponse($result , 'الدعوى');
     }
 
     public function showCasesInCourtByStatus(ShowCasesByStatusRequest $request)
     {
         try{
-            $data = $this->caseService->getCasesInCourtByStatus($request->only('my_court_id','status'));
+
+            $data = $this->caseService->getCasesInCourtByStatus($request->only('my_court_id','type_court','status'));
 
             if($data->isEmpty())
                 return $this->sendOkResponse('لايوجد نتائج لعرضها');
 
             $result = CasesResources::collection($data);
-            return $this->sendResponse($result,'كل الدعاوى ');
+            return $this->sendResponse($result,'كل الدعاوى');
             
         }catch(Exception $e){
             return $this->sendError(
@@ -94,7 +126,7 @@ class CaseController extends Controller
     public function showCountCasesInCourtByStatus(ShowCasesByStatusRequest $request)
     {
         try{
-            $data = $this->caseService->getCountCasesInCourtByStatus($request->only('my_court_id','status'));
+            $data = $this->caseService->getCountCasesInCourtByStatus($request->only('my_court_id','type_court','status'));
 
             return $this->sendResponse(['count'=>$data],'عدد الدعاوى');
             
@@ -104,5 +136,81 @@ class CaseController extends Controller
             );
         }
     }
+
+    // اظهار القضية في اي قسم وعند اي محامي والجلسات
+    public function showDetailsCase(ShowDetailsCaseRequest $request){
+        try{
+            $data = $this->caseService->getDetailsCase($request->only('case_id','court_type_id'));
+
+            if(!$data)
+                return $this->sendOkResponse('لايوجد نتائج لعرضها');
+            // return $data ;
+            $result = ShowDetailsCaseResource::make($data);
+            return $this->sendResponse($result,'تفاصيل  الدعوى  ');
+            
+            $result = LawyerCaseInSectionResource::make($data);
+            
+        }catch(Exception $e){
+            return $this->sendError(
+                $e->getMessage()
+            );
+        }
+    }
+
+
+    public function showCasesCloseOrOpenWithDetails($status_case){
+        try{
+
+            $data = $this->caseService->getCasesByStatusInSection($status_case, Auth::user()->user->id);
+
+            if($data->isEmpty())
+                return $this->sendOkResponse('لايوجد نتائج لعرضها');
+
+            $result = LawyerCaseInSectionResource::collection($data);
+            return $this->sendResponse($result,'الدعاوى حسب حالتها ضمن القسم  ');
+            
+        }catch(Exception $e){
+            return $this->sendError(
+                $e->getMessage()
+            );
+        }
+    }
+
+    public function showSessionsCase($case_id , $case_judge_id )
+    {
+        try{
+
+            $data = $this->caseService->getSessionsCase($case_id,$case_judge_id);
+
+            $result = SessionsCaseResource::collection($data);
+            return $this->sendResponse($result);
+            
+        }catch(Exception $e){
+            return $this->sendError(
+                $e->getMessage()
+            );
+        }
+    }
+
+
+    public function getCasesSummary()
+    {
+        try {
+            $data = $this->caseService->getStatisticsCasesByCourtTypeAndStatus(Auth::user()->user->id);
+
+            if ($data->isEmpty()) {
+                return $this->sendOkResponse('لايوجد نتائج لعرضها');
+            }
+            
+            return $this->sendResponse($data,'نتائج احصائية ');
+
+            return $cases;
+        } catch (Exception $e) {
+            throw new Exception($e->getMessage());
+        }
+    }
+
+
+
 
 }

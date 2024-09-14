@@ -29,4 +29,11 @@ class LawyerCourt extends Model
         return $this->hasMany(PowerOfAttorney::class, 'lawyer_id');
     }
 
+    public function cases()
+    {
+        return $this->belongsToMany(Cases::class, 'power_of_attorneys', 'lawyerCourt_id', 'case_id')
+                    ->withPivot('representing')
+                    ->withTimestamps();
+    }
+
 }

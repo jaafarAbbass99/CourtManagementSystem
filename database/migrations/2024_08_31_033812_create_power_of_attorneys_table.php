@@ -16,7 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('case_id'); 
             $table->unsignedBigInteger('lawyerCourt_id'); 
             $table->enum('representing', ['الطرف الاول', 'الطرف الثاني']);
-            $table->enum('get',['yes','no','yet']);
+           
 
             $table->timestamps();
 
