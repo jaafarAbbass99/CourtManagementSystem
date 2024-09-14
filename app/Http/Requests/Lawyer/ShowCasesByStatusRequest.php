@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Lawyer;
 
+use App\Enums\TypeCourt;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Enum;
 
 class ShowCasesByStatusRequest extends FormRequest
 {
@@ -15,7 +17,8 @@ class ShowCasesByStatusRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'my_court_id' => 'required|exists:lawyer_courts,id',
+            'my_court_id' =>  'required|exists:courts,id',
+            'type_court' => ['required', new Enum(TypeCourt::class)],
             'status' => 'required',
         ];
     }

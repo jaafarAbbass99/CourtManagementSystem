@@ -30,7 +30,15 @@ class Controller extends BaseController
 
     protected function sendError($message, $statusCode = 400): JsonResponse
     {
-        return $this->sendResponse(null, $message, false, $statusCode);
+        return $this->sendResponse(false,$message, false, $statusCode);
     }
+
+    protected function sendErrorWithCause($msg_error,$message, $statusCode = 400): JsonResponse
+    {
+        return $this->sendResponse($msg_error,$message, false, $statusCode);
+    }
+
+
+
 
 }

@@ -14,17 +14,17 @@ return new class extends Migration
     {
         Schema::create('cases', function (Blueprint $table) {
             $table->id();
-            // $table->bigInteger('case_number')->autoIncrement()->unsigned()->unique();
             $table->bigInteger('number');
             $table->string('full_number')->unique();
             $table->string('party_one');
             $table->string('party_two');
             $table->text('subject');
-            $table->unsignedBigInteger('court_id');
+            $table->unsignedBigInteger('court_type_id');
             $table->unsignedBigInteger('case_type_id');
+            $table->foreignId('exist_now')->constrained('judge_sections')->onDelete('cascade'); 
             $table->timestamps();
 
-            $table->foreign('court_id')->references('id')->on('courts');
+            $table->foreign('court_type_id')->references('id')->on('court_types');
             $table->foreign('case_type_id')->references('id')->on('case_types');
             
             $table->unique(['number','case_type_id']);

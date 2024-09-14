@@ -16,13 +16,14 @@ class Cases extends Model
         'party_one',
         'party_two',
         'subject',
-        'court_id',
+        'court_type_id',
         'case_type_id',
+        'exist_now'
     ];
 
-    public function court()
+    public function courtType()
     {
-        return $this->belongsTo(Court::class);
+        return $this->belongsTo(CourtType::class);
     }
 
     public function caseType()
@@ -33,7 +34,34 @@ class Cases extends Model
     public function powerOfAttorneys(){
         return $this->haseMany(PowerOfAttorney::class);
     }
+
+    public function decisions(){
+        return $this->haseMany(Decision::class,'case_id');
+    }
+
+    public function case_judges()
+    {
+        return $this->hasMany(CaseJudge::class,'case_id');
+    }
+
+    public function judgeSections(){
+        return $this->belongsToMany(JudgeSection::class, 'case_judges', 'case_id', 'judge_section_id')
+                    ->withPivot('id','is_seen','status', 'date_close_case','full_number')
+                    ->withTimestamps();
+    }
+
+    public function lawyers()
+    {
+        return $this->belongsToMany(LawyerCourt::class, 'power_of_attorneys', 'case_id', 'lawyerCourt_id')
+                    ->withPivot('representing')
+                    ->withTimestamps();
+    }
+
      
+    public function now()
+    {
+        return $this->belongsTo(JudgeSection::class,'exist_now','id');
+    }
 
 
     public static function boot(){

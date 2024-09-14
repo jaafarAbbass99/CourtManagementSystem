@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('section_id')->constrained('sections')->onDelete('cascade');
-            $table->foreignId('court_id')->constrained('courts')->onDelete('cascade'); 
+            $table->foreignId('court_type_id')->constrained('court_types')->onDelete('cascade'); 
             $table->enum('role', ['responsible', 'member']);
 
             $table->unique(['user_id']);

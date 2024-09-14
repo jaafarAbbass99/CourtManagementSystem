@@ -13,7 +13,6 @@ class PowerOfAttorney extends Model
         'case_id',
         'lawyerCourt_id',
         'representing',
-        'get'
     ];
 
     public function case()
@@ -25,4 +24,10 @@ class PowerOfAttorney extends Model
     {
         return $this->belongsTo(LawyerCourt::class, 'lawyerCourt_id');
     }
+
+    public function win()
+    {
+        return $this->hasOne(Win::class, 'attorney_id', 'id');
+    }
+
 }

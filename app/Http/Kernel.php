@@ -68,7 +68,9 @@ class Kernel extends HttpKernel
         'check.Verified.LawyerORJudg' => \App\Http\Middleware\verifiedAndLawyerJudgeMiddleware::class,
         'check.role.Admin' => \App\Http\Middleware\IsAdmin::class,
         'check.role.Lawyer' => \App\Http\Middleware\IsLawyer::class,
+        'check.role.Judge' => \App\Http\Middleware\IsJudge::class,
         'check.joined.Lawyer' => \App\Http\Middleware\IsLawyerJoined::class,
+        
         
     ];
 }

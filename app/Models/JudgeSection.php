@@ -11,36 +11,28 @@ class JudgeSection extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'section_id', 'court_id', 'role',
+        'user_id', 'section_id', 'court_type_id', 'role',
     ];
 
-
-    // public static function findOrFail($id)
-    // {
-    //     $model = static::find($id);
-
-    //     if (!$model) {
-    //         throw new ModelNotFoundException("القسم بقيمة {$id} غير موجود.");
-    //     }
-
-    //     return $model;
-    // }
-
-
+    public function cases(){
+        return $this->belongsToMany(Cases::class , 'case_judges','judge_section_id','case_id')
+        ->withPivot('id','status','is_seen', 'date_close_case','full_number') // الوصول إلى الأعمدة الإضافية في الجدول الوسيط
+        ->withTimestamps();
+    }
 
     public function section()
     {
         return $this->belongsTo(Section::class);
     }
 
-    public function court()
+    public function courtType()
     {
-        return $this->belongsTo(Court::class);
+        return $this->belongsTo(CourtType::class,'court_type_id');
     }
 
     public function judge()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class,'user_id');
     }
     
 }

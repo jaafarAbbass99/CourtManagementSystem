@@ -33,9 +33,6 @@ class LoginUserController extends Controller
             $this->makeAccountIsApproved($account);
         }
 
-        if(!$account->isApproved())
-            return $this->sendError('الحساب : '. __('status.'.$account->status) );
-
         $data = [
             'token' => $token,
             'profile' => new ProfileUserResource($user),

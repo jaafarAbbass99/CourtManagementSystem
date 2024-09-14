@@ -3,11 +3,16 @@
 namespace App\Gates\EnterGates;
 
 use App\Enums\Role;
+use App\Enums\SessionStatus;
 use App\Enums\Status;
+use App\Enums\StatusCaseInSection;
 use App\Models\Account;
+use App\Models\CaseJudge;
+use App\Models\Cases;
 use App\Models\LawyerCourt;
 use App\Models\PowerOfAttorney;
 use App\Models\RequiredIdeDoc;
+use App\Models\Session;
 use Illuminate\Support\Facades\Gate;
 
 class Gates
@@ -47,10 +52,30 @@ class Gates
 
         Gate::define('isCaseForLawyer',function(Account $account ,$case_id){
             $l_c_id = PowerOfAttorney::where('case_id', $case_id)->value('lawyerCourt_id');
-            
+                    
             return LawyerCourt::where('id', $l_c_id)
-                        ->where('user_id',$account->user->id())->exists();
+                        ->where('user_id',$account->user->id)->exists();
                         
+        });
+
+        Gate::define('isDateTimeValid', function(Account $account , $caseJudgeId ,$session_date ,$session_time){
+            return Session::where('case_judge_id', $caseJudgeId)
+            ->where('session_date', $session_date)
+            ->where('session_time', $session_time)
+            ->exists();
+        });
+
+        
+        Gate::define('isCaseOpen', function(Account $account , $caseJudgeId){
+            return CaseJudge::where('id',$caseJudgeId)
+                        ->where('status',StatusCaseInSection::OPEN->value)
+                        ->exists();
+        });
+
+        Gate::define('isSessionOpen', function(Account $account , $session_id){
+            return Session::where('id',$session_id)
+                        ->where('session_status',SessionStatus::scheduled->value)
+                        ->exists();
         });
 
 

@@ -10,7 +10,7 @@ class Court extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 'type', 'province', 'city',
+        'name', 'province',
     ];
 
     public function courtTypes()

@@ -20,6 +20,8 @@ class OpenCaseByLawyerRequest extends FormRequest
             'party_two' => 'required|string',
             'subject' => 'required|string',
             'case_type_id' => 'required|exists:case_types,id',
+            'file' => 'required|file|mimes:pdf,doc,docx,jpg,png', 
+            'summary' => 'required|string|max:255',
         ];
     }
 }

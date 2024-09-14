@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('type');
             $table->string('city');
             $table->string('type_form');
+            $table->tinyInteger('rank');
 
             $table->timestamps();
         });

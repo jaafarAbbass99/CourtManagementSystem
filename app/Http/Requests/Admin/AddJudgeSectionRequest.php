@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Enums\Role;
 use App\Models\JudgeSection;
 use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
@@ -12,7 +13,7 @@ class AddJudgeSectionRequest extends FormRequest
     public function authorize(): bool
     {
         //التحقق من ان المستخدم الذي يضاف هو قاضي 
-        return User::where('id','user_id')->where('role',2)->exists();
+        return User::where('id',$this->user_id)->where('role',Role::JUDGE->value)->exists();
     }
 
     public function rules(): array
@@ -20,7 +21,7 @@ class AddJudgeSectionRequest extends FormRequest
         return [
             'user_id' => 'required|exists:users,id',
             'section_id' => 'required|exists:sections,id',
-            'court_id' => 'required|exists:courts,id',
+            'court_type_id' => 'required|exists:court_types,id',
             'role' =>  ['required', 'in:responsible,member', $this->uniqueResponsibleInSection()],
         ];
     }

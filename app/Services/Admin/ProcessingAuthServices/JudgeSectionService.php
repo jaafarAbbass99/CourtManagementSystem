@@ -12,7 +12,7 @@ class JudgeSectionService
     {
         $exists = JudgeSection::where('user_id', $data['user_id'])
             ->where('section_id', $data['section_id'])
-            ->where('court_id', $data['court_id'])
+            ->where('court_type_id', $data['court_type_id'])
             ->where('role',$data['role'])
             ->exists();
 
