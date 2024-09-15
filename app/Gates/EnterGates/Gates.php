@@ -76,18 +76,15 @@ class Gates
             return Session::where('id',$session_id)
                         ->where('session_status',SessionStatus::scheduled->value)
                         ->exists();
+                        
         });
 
 
-        // Gate::define('checkReqDoc',function(Account $account,$role,$req_doc){
-        //     //return true ;
-        //     $res = RequiredIdeDoc::where('req_doc',$req_doc)
-        //     ->where('for',$role)
-        //     ->exists();
-        //     if($res)
-        //         return true;
-        //     return false ;
-        // });
+        Gate::define('checkReqDoc',function(Account $account,$role,$req_doc){
+            return RequiredIdeDoc::where('req_doc',$req_doc)
+            ->where('for',$role)
+            ->exists();
+        });
 
 
     }
