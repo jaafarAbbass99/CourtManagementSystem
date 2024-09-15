@@ -34,7 +34,7 @@ class updateRejectedIdDocsController extends Controller
         $nameDoc = now()->format('Ymd_His'). '_' .$request->file('file')->getClientOriginalName();
 
         // رفع الوثيقة الجديدة
-         $filePath = $request->file('file')->storeAs($document->file->document_path,$nameDoc);
+         $filePath = $request->file('file')->storeAs($document->file->document_path,$nameDoc,'public');
 
         // تحديث معلومات الوثيقة
         $document->update([
