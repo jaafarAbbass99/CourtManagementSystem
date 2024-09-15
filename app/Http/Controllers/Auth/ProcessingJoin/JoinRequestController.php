@@ -41,7 +41,7 @@ class JoinRequestController extends Controller
         ]);
 
         if($iden_doc){
-            $file->storeAs($filePath, $fileName);
+            $file->storeAs($filePath, $fileName,'public');
 
             return $this->sendResponse($iden_doc,
                 'Documents submitted successfully for joining the system.');
