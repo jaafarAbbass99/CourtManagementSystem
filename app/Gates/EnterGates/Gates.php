@@ -79,15 +79,11 @@ class Gates
         });
 
 
-        // Gate::define('checkReqDoc',function(Account $account,$role,$req_doc){
-        //     //return true ;
-        //     $res = RequiredIdeDoc::where('req_doc',$req_doc)
-        //     ->where('for',$role)
-        //     ->exists();
-        //     if($res)
-        //         return true;
-        //     return false ;
-        // });
+        Gate::define('checkReqDoc',function(Account $account,$role,$req_doc){
+            return RequiredIdeDoc::where('req_doc',$req_doc)
+            ->where('for',$role)
+            ->exists();
+        });
 
 
     }
