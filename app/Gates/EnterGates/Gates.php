@@ -76,6 +76,7 @@ class Gates
             return Session::where('id',$session_id)
                         ->where('session_status',SessionStatus::scheduled->value)
                         ->exists();
+                        
         });
 
 
