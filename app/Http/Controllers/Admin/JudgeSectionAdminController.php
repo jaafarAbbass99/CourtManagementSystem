@@ -8,12 +8,7 @@ use App\Http\Resources\JudgeSectionResource;
 use App\Models\JudgeSection;
 use App\Services\Admin\ProcessingAuthServices\JudgeSectionService;
 use Exception;
-use GuzzleHttp\Psr7\Response;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Http\Request;
 
-use function PHPUnit\Framework\isEmpty;
-use function PHPUnit\Framework\isNull;
 
 class JudgeSectionAdminController extends Controller
 {

@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Enums\Representing;
+use App\Enums\SessionStatus;
+use App\Enums\SessionType;
 use App\Enums\StatusCaseInSection;
 use App\Enums\TypeCaseDoc;
 use App\Enums\TypeCourt;
@@ -17,6 +19,7 @@ use App\Models\LawyerCourt;
 use App\Models\PowerOfAttorney;
 use App\Models\Session;
 use App\Models\Win;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
@@ -24,6 +27,15 @@ use Illuminate\Support\Facades\DB;
 
 class CaseService
 {
+    protected $s_time;
+    protected $e_time;
+    protected $date ;
+
+    public function __construct()
+    {
+        $this->s_time = '9:00' ;
+        $this->e_time = '17:00:00' ;
+    }
     // فتح دعوى جديدة
     public function openCase($data) 
     {
@@ -65,7 +77,6 @@ class CaseService
                         'status' => StatusCaseInSection::OPEN->value,
                     ]);
 
-
             $account = Auth::user() ;
 
             
@@ -79,17 +90,60 @@ class CaseService
                 'user_name' => $account->user_name,
                 'number_case'=>$caseJudge->full_number,
             ]);
+            $session = $this->openSession($sectionId, $caseJudge->id);
 
-            DB::commit(); 
-            return true;
+            DB::commit();
+            return $session;
 
         }catch(Exception $e){
             DB::rollBack();
             throw new \Exception($e->getMessage());
-            // return false ;
         }
 
     }
+
+    public function openSession($sectionId,$case_judge_id){
+        //عند القاضي المستلم جلب اخر وقت بعد اسبوع من رفع الحلسة
+        try{
+            $date  = Carbon::now()->addWeek();
+            
+            while ($date->isFriday() || $date->isSaturday()) {
+                $date->addDay();
+            }
+            
+            $time = Session::where('session_date',$date->format('Y-m-d'))
+                ->orderBy('session_time','desc')
+                ->whereHas('caseJudge',function ($q) use($sectionId){
+                    $q->where('judge_section_id',$sectionId);
+                })->value('session_time');
+            
+                            
+            while ($time == $this->e_time){
+                $date->addDay();
+                
+                $time = Session::where('session_date',$date->format('Y-m-d'))
+                ->orderBy('session_time','desc')
+                ->whereHas('caseJudge',function ($q) use($sectionId){
+                    $q->where('judge_section_id',$sectionId);
+                })->value('session_time');
+                
+            }
+            if(!$time)
+                $time = $this->s_time;
+                
+            $session_time = Carbon::parse($time)->addHour();
+            return Session::create([
+                    'case_judge_id'=> $case_judge_id,
+                    'session_date' => $date->format('Y-m-d'),
+                    'session_time' => $session_time->format('H:i:s'),
+                    'session_type' => SessionType::PRELIMINARY->value ,
+                    'session_status' => SessionStatus::scheduled->value,
+                ]);
+            
+        }catch(Exception $e){
+            throw new Exception($e->getMessage());
+        }
+    } 
 
     public function addFilesToCase($request){
         

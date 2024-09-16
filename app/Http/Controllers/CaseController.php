@@ -12,6 +12,7 @@ use App\Http\Requests\StatusCaseCloseOpenRequest;
 use App\Http\Resources\Cases\CasesResources;
 use App\Http\Resources\Judge\Show\SessionsCaseResource;
 use App\Http\Resources\Lawyer\CaseInSectionResource as LawyerCaseInSectionResource;
+use App\Http\Resources\Lawyer\SessionWithSectionResource;
 use App\Http\Resources\Lawyer\ShowDetailsCaseResource;
 use App\Models\CaseJudge;
 use App\Models\Cases;
@@ -35,9 +36,9 @@ class CaseController extends Controller
         try{
             
             $data = $this->caseService->openCase($request->all());
-
+            $result = SessionWithSectionResource::make($data);
             if($data)
-                return $this->sendOKResponse('تم فتح الدعوى بنجاح.') ;
+                return $this->sendResponse($result,'تم فتح الدعوى بنجاح.') ;
             
         }catch(Exception $e){
             return $this->sendErrorWithCause(

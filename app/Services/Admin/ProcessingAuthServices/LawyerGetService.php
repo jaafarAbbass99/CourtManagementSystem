@@ -29,6 +29,7 @@ class LawyerGetService
                     ->where('status', $status->value)
                     ->with(['file','type'])
                     ->get();
+        return $data ;
         if($data)    
             $restult = IdenDocResource::collection($data);
         return $restult ;

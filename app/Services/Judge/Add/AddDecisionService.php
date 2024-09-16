@@ -11,6 +11,7 @@ use App\Models\Decision;
 use App\Models\JudgementDocs;
 use App\Models\JudgeSection;
 use App\Models\Session;
+use App\Models\Win;
 use App\Services\CaseService;
 use Exception;
 use Illuminate\Support\Facades\Auth;
@@ -56,12 +57,40 @@ class AddDecisionService
             throw new Exception('مشكلة في اضافة الملف'.$e->getMessage());
         }
     }
+    public function getAttorneys($case_id , $for){
+        return Win::whereHas('attorney',function ($q) use($case_id,$for){
+            $q->where('case_id',$case_id)
+               ->where('representing',$for);
+            })->whereHas('courtType.judgeSections', function ($q){
+                $q->where('user_id', Auth::user()->user->id);
+            })->first();
+    }
 
+    public function makeDecisionWinFor($case_id , $for){
+        $result = $this->getAttorneys($case_id , $for);
+        if($result){
+            $result->get = 'yes';
+            $result->save();
+        }
+    }
+    public function makeDecisionLoseFor($case_id){
+        Win::whereHas('attorney',function ($q) use($case_id){
+            $q->where('case_id',$case_id);
+            })->whereHas('courtType.judgeSections', function ($q){
+                $q->where('user_id', Auth::user()->user->id);
+            })->where('get','yet')->update(['get'=>'no']);
+    }
 
     public function addDecisionWithDoc($data)
     {   
         DB::beginTransaction();
         try{
+            if($data['status'] == 'نهائي' ){
+                $this->makeDecisionWinFor($data['case_id'],$data['favor']);
+                
+                $this->makeDecisionLoseFor($data['case_id']);
+            }
+            
             $decision = $this->addDecision($data);
 
             $case_doc = $this->caseService->uploadeCaseDocs([
