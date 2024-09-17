@@ -18,7 +18,6 @@ class updateRejectedIdDocsController extends Controller
                             ->where('user_id', $request->user()->user->id)
                             ->where('status', Status::REJECTED->value)
                             ->first();
-
         // إذا لم يتم العثور على الوثيقة
         if (!$document) {
             return $this->sendError('Document not found or not eligible for update.',404) ;

@@ -12,18 +12,19 @@ use App\Services\Admin\ProcessingAuthServices\LawyerGetService;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 use function PHPUnit\Framework\isNull;
 
 class getRejectedIdDocsController extends Controller
 {
-    public function __invoke(LawyerGetService $lawyerService , Request $request): JsonResponse
+    public function __invoke(LawyerGetService $lawyerService , Request $request)//: JsonResponse
     {
         try {
             $user = $request->user();
-
+            
             $result = $lawyerService->getDocsForLawyer($user->user_id,Status::REJECTED);
-
+            
             return $this->sendResponse($result,'Rejected documents retrieved successfully.');
             
         } catch(Exception $e){

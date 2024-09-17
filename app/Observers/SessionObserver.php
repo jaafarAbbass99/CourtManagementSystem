@@ -12,8 +12,9 @@ class SessionObserver
     {
         
         $lastSessionNumber  = Session::where('case_judge_id', $session->case_judge_id)
-        ->max('session_number');        
-        $session->session_number = $lastSessionNumber  + 1;
+        ->max('session_number');    
+            
+        $session->session_number = $lastSessionNumber == 0 ? 1 : $lastSessionNumber + 1;
         $session->save();
     }
 

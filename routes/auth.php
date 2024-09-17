@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\ProcessingJoin\JoinRequestController;
 use App\Http\Controllers\Auth\ProcessingJoin\updateRejectedIdDocsController;
 use App\Http\Controllers\Auth\LoginUserController;
 use App\Http\Controllers\Auth\LogoutUserController;
+use App\Http\Controllers\Auth\ProcessingJoin\showStatusAccountController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 
@@ -41,6 +42,9 @@ Route::prefix('auth')->group(function () {
         // تحديث الوثائق المرفوضة
         Route::post('/update-rejected-id-doc', updateRejectedIdDocsController::class)
             ->name('lawyer.updateRejectedIdDocs');
+
+        ////show-status-account
+        Route::get('/show-status-account' , [showStatusAccountController::class ,'showStatusAccount']); 
 
     });
     

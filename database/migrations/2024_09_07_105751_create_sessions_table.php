@@ -16,7 +16,7 @@ return new class extends Migration
         Schema::create('sessions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('case_judge_id')->constrained('case_judges')->onDelete('cascade');
-            $table->integer('session_number')->default(1);
+            $table->integer('session_number')->default(0);
             $table->date('session_date'); 
             $table->time('session_time'); 
             $table->unsignedTinyInteger('session_type')
