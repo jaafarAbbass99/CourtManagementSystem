@@ -15,7 +15,7 @@ class OpenCaseByLawyerRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'my_court_id' => 'required|exists:courts,id',
+            'court_id' => 'required|exists:courts,id',
             'party_one' => 'required|string',
             'party_two' => 'required|string',
             'subject' => 'required|string',

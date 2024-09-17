@@ -36,6 +36,7 @@ class CaseController extends Controller
         try{
             
             $data = $this->caseService->openCase($request->all());
+            return $data ;
             $result = SessionWithSectionResource::make($data);
             if($data)
                 return $this->sendResponse($result,'تم فتح الدعوى بنجاح.') ;
@@ -83,7 +84,7 @@ class CaseController extends Controller
     // عرض دعوى معينة حسب اسم المدعي والعام والمحكمة
     public function showCaseByDetails(ShowCaseByDetailsRequest $request)
     {
-        $case = $this->caseService->getCaseByDetails($request->party_one, $request->my_court_id, $request->year);
+        $case = $this->caseService->getCaseByDetails($request->party_one, $request->court_id, $request->year);
         if (!$case) {
             return response()->json(['message' => 'لم يتم العثور على الدعوى.'], 404);
         }

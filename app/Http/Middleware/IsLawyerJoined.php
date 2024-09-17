@@ -12,7 +12,7 @@ class IsLawyerJoined
     
     public function handle(Request $request, Closure $next): Response
     {
-        $court_id = $request->input('my_court_id')!=null ? $request->input('my_court_id') :  $request->route('court_id') ; 
+        $court_id = $request->input('court_id')!=null ? $request->input('court_id') :  $request->route('court_id') ; 
         
         
         if (!$court_id) {

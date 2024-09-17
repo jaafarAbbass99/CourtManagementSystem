@@ -44,7 +44,7 @@ class CaseService
         try{
             $typeId = Court::whereHas('courtTypes',function ($q){
                 $q->where('type_form',TypeCourt::ST->value);
-            })->where('id',$data['my_court_id'])->value('id');
+            })->where('id',$data['court_id'])->value('id');
             
             $sectionId  = $this->getSectionByRandom($typeId);
             
@@ -187,9 +187,11 @@ class CaseService
     // عرض الدعاوى التابعة له في محكمة محددة
     public function getCasesInCourt($courtId)
     {
-        return PowerOfAttorney::where('lawyerCourt_id', $courtId)
-                            ->with('case')
-                            ->get();
+        return PowerOfAttorney::whereHas('lawyerInCourt' , function ($q)use($courtId){
+            $q->where('court_id', $courtId);
+        })
+        ->with('case')
+        ->get();
     }
 
     // عرض الدعاوى التابعة له في كل المحاكم
@@ -211,13 +213,16 @@ class CaseService
     // بحث عن دعوى معينة حسب تفاصيل محددة
     public function getCaseByDetails($partyOne, $courtId, $year)
     {
-        return PowerOfAttorney::where('id',$courtId)
-                ->whereHas('case',function($q) use($partyOne,$year){
-                    $q->where('party_one', $partyOne)
-                    ->whereYear('created_at', $year);  
-                })
-                ->with('case.caseType')
-                ->get();
+        return PowerOfAttorney::whereHas('lawyerInCourt' , function ($q)use($courtId){
+            $q->where('court_id', $courtId);
+        })
+        ->whereHas('case',function($q) use($partyOne,$year){
+            $q->where('party_one', $partyOne)
+            ->whereYear('created_at', $year);  
+        })
+        ->with('case.caseType')
+        ->get();
+        
     }
 
 
