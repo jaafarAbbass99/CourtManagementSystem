@@ -36,7 +36,6 @@ class CaseController extends Controller
         try{
             
             $data = $this->caseService->openCase($request->all());
-            return $data ;
             $result = SessionWithSectionResource::make($data);
             if($data)
                 return $this->sendResponse($result,'تم فتح الدعوى بنجاح.') ;
