@@ -236,10 +236,10 @@ class CaseService
 
     // عرض دعاوى مكتسبة| غير مكتسبة  في محكمة (نقض - استئناف-..)   
     public function getCasesInCourtByStatus($data){
-        $court_id = LawyerCourt::where('id',$data['my_court_id'])->value('court_id');
+        // $court_id = LawyerCourt::where('id',$data['my_court_id'])->value('court_id');
         
         $TypeCourtId = CourtType::where([
-            ['court_id', $court_id],
+            ['court_id', $data['court_id']],
             ['type_form', $data['type_court']],
         ])->value('id');
         

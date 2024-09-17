@@ -110,7 +110,7 @@ class CaseController extends Controller
     {
         try{
 
-            $data = $this->caseService->getCasesInCourtByStatus($request->only('my_court_id','type_court','status'));
+            $data = $this->caseService->getCasesInCourtByStatus($request->only('court_id','type_court','status'));
 
             if($data->isEmpty())
                 return $this->sendOkResponse('لايوجد نتائج لعرضها');
