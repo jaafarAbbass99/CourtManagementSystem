@@ -17,7 +17,7 @@ class ShowCasesByStatusRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'my_court_id' =>  'required|exists:courts,id',
+            'court_id' =>  'required|exists:courts,id',
             'type_court' => ['required', new Enum(TypeCourt::class)],
             'status' => 'required',
         ];

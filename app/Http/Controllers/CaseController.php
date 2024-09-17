@@ -83,7 +83,7 @@ class CaseController extends Controller
     // عرض دعوى معينة حسب اسم المدعي والعام والمحكمة
     public function showCaseByDetails(ShowCaseByDetailsRequest $request)
     {
-        $case = $this->caseService->getCaseByDetails($request->party_one, $request->my_court_id, $request->year);
+        $case = $this->caseService->getCaseByDetails($request->party_one, $request->court_id, $request->year);
         if (!$case) {
             return response()->json(['message' => 'لم يتم العثور على الدعوى.'], 404);
         }
@@ -109,7 +109,7 @@ class CaseController extends Controller
     {
         try{
 
-            $data = $this->caseService->getCasesInCourtByStatus($request->only('my_court_id','type_court','status'));
+            $data = $this->caseService->getCasesInCourtByStatus($request->only('court_id','type_court','status'));
 
             if($data->isEmpty())
                 return $this->sendOkResponse('لايوجد نتائج لعرضها');

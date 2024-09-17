@@ -46,7 +46,7 @@ class Gates
         });
 
         Gate::define('isLawyerJoinedToCourt', function(Account $account , $court_id){
-            return LawyerCourt::where('id',$court_id)
+            return LawyerCourt::where('court_id',$court_id)
                         ->where('user_id',$account->user->id)->exists();
         });
 
