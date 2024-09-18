@@ -4,6 +4,7 @@ namespace App\Services\Judge\Add;
 
 use App\Enums\StatusCaseInSection;
 use App\Models\CaseJudge;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\Auth;
 
@@ -43,10 +44,14 @@ class CaseService
     public function setCaseCloseOpen($user_id,$case_id,StatusCaseInSection $status)
     {   
         try{
-            CaseJudge::where('case_id',$case_id)
+            $date_close_case = Carbon::now();
+            return CaseJudge::where('case_id',$case_id)
                 ->whereHas('judgeSection',function ($q) use($user_id){
                     $q->where('user_id',$user_id);
-                })->update(['status' => $status->value]);
+                })->update([
+                    'status' => $status->value,
+                    'date_close_case' => $date_close_case
+                    ]);
 
         }catch(Exception $e){
             throw new Exception(

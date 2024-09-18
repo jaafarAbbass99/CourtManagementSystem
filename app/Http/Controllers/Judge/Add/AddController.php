@@ -123,8 +123,10 @@ class AddController extends Controller
     public function makeCaseClose($case_id)
     {
         try{
-            $this->caseService->setCaseCloseOpen(Auth::user()->user->id,$case_id,StatusCaseInSection::CLOSE);
-            return $this->sendOkResponse('تم فصل الدعوى');
+            $result = $this->caseService->setCaseCloseOpen(Auth::user()->user->id,$case_id,StatusCaseInSection::CLOSE);
+            if($result)
+                return $this->sendOkResponse('تم فصل الدعوى');         
+            return $this->sendOkResponse('لم يتم فصل الدعوى');         
         }catch(Exception $e){
             return $this->sendError(
                 $e->getMessage()
