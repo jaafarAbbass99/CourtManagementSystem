@@ -308,10 +308,9 @@ class CaseService
         $sectionIds = JudgeSection::where('court_type_id',$typeId)->pluck('id');
         
         if ($sectionIds->isNotEmpty())
-            $randomId = Arr::random($sectionIds->toArray());
-
-        return $randomId ;    
-
+            return Arr::random($sectionIds->toArray());
+        
+        return throw new Exception('لا يوجد قضاة في الاقسام') ;
     }
 
 
