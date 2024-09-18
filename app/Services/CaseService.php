@@ -59,7 +59,7 @@ class CaseService
 
             $attorney = PowerOfAttorney::create([
                 'case_id' => $case->id,
-                'lawyerCourt_id' => $data['my_court_id'],
+                'lawyerCourt_id' => $data['court_id'],
                 'representing' => Representing::PARTY_ONE->value ,  
             ]);
 
