@@ -235,8 +235,10 @@ class CaseController extends Controller
         try{
 
             $data = $this->caseService->getDecisionOrder($decision_order_id);
+            if(!$data)
+                return $this->sendError('لا يوجد طلب');
+            
             $result = DecisionOrderResource::make($data);
-
             return $this->sendResponse($result);
             
         }catch(Exception $e){
