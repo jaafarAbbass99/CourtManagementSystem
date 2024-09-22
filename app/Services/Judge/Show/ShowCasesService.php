@@ -36,7 +36,7 @@ class ShowCasesService
         }
 
         return $this->getCasesForJudgeSection($judgeSection)
-                    ->wherePivot('is_seen', false)
+                    // ->wherePivot('is_seen', false)
                     ->get();
     }
 

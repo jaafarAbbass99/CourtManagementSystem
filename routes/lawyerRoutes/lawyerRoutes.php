@@ -54,6 +54,12 @@ Route::middleware(['auth:sanctum','check.role.Lawyer'])->prefix('/lawyer')->grou
 
     Route::get('/show-sessions-case/{case_id}/{case_judge_id}' , [CaseController::class ,'showSessionsCase']);
 
+    // /////
+    Route::post('/add-order-decision' , [CaseController::class ,'addDecisionOrder']);
+    Route::get('/show-order-decision/{id}' , [CaseController::class ,'showDecisionOrder']);
+    Route::get('/show-all-order' , [CaseController::class ,'showAllOrder']);
+
+    Route::delete('/delete-order/{order_id}' , [CaseController::class ,'deleteOrder']);
 
 
 

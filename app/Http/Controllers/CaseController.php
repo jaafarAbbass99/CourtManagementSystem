@@ -4,14 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\AddFilesToCaseRequest;
 use App\Http\Requests\CaseJudgeIdRequest;
+use App\Http\Requests\Lawyer\DeleteDecisionOrderRequest;
 use App\Http\Requests\Lawyer\ShowCasesByStatusRequest;
 use App\Http\Requests\Lawyer\ShowDetailsCaseRequest;
+use App\Http\Requests\Lawyer\StoreDecisionOrderRequest;
 use App\Http\Requests\OpenCaseByLawyerRequest;
 use App\Http\Requests\ShowCaseByDetailsRequest;
 use App\Http\Requests\StatusCaseCloseOpenRequest;
 use App\Http\Resources\Cases\CasesResources;
 use App\Http\Resources\Judge\Show\SessionsCaseResource;
 use App\Http\Resources\Lawyer\CaseInSectionResource as LawyerCaseInSectionResource;
+use App\Http\Resources\Lawyer\DecisionOrderResource;
 use App\Http\Resources\Lawyer\SessionWithSectionResource;
 use App\Http\Resources\Lawyer\ShowDetailsCaseResource;
 use App\Models\CaseJudge;
@@ -19,6 +22,7 @@ use App\Models\Cases;
 use App\Services\CaseService;
 use Exception;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class CaseController extends Controller
 {
@@ -211,7 +215,67 @@ class CaseController extends Controller
         }
     }
 
+    public function addDecisionOrder(StoreDecisionOrderRequest $request){
+        try{
 
+            $this->caseService->addDecisionOrder($request->only('decision_id','type_order'));
+            return $this->sendOKResponse('تم اضافة الطلب بنجاح.');
+            
+        }catch(Exception $e){
+            return $this->sendErrorWithCause(
+                $e->getMessage(),': خطأ في اضافة الطلب'
+            );
+        }
+    }
 
+    
+    
+    // showDecisionOrder
+    public function showDecisionOrder($decision_order_id){
+        try{
 
+            $data = $this->caseService->getDecisionOrder($decision_order_id);
+            $result = DecisionOrderResource::make($data);
+
+            return $this->sendResponse($result);
+            
+        }catch(Exception $e){
+            return $this->sendError(
+                $e->getMessage()
+            );
+        }
+    }
+
+    // showAllOrder
+    public function showAllOrder(){
+        try{
+
+            $data = $this->caseService->getAllOrder(Auth::user()->user->id);
+            $result = DecisionOrderResource::collection($data);
+
+            return $this->sendResponse($result);
+            
+        }catch(Exception $e){
+            return $this->sendError(
+                $e->getMessage()
+            );
+        }
+    }
+
+    // deleteOrder
+    public function deleteOrder(DeleteDecisionOrderRequest $request){
+        try{
+            if(Gate::denies('isOrderPending',$request->order_id))
+                return $this->sendError('لا يمكن حذف الطلب');
+
+            $data = $this->caseService->deleteOrder(Auth::user()->user->id,$request->order_id);
+            if($data)
+                return $this->sendOKResponse('تم حذف الطلب بنجاح.');
+
+        }catch(Exception $e){
+            return $this->sendErrorWithCause(
+                $e->getMessage(),': خطأ في اضافة الطلب'
+            );
+        }
+    }
 }
