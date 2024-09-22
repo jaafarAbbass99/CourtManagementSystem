@@ -9,6 +9,8 @@ use App\Enums\StatusCaseInSection;
 use App\Models\Account;
 use App\Models\CaseJudge;
 use App\Models\Cases;
+use App\Models\Decision;
+use App\Models\DecisionOrder;
 use App\Models\LawyerCourt;
 use App\Models\PowerOfAttorney;
 use App\Models\RequiredIdeDoc;
@@ -84,6 +86,28 @@ class Gates
             return RequiredIdeDoc::where('req_doc',$req_doc)
             ->where('for',$role)
             ->exists();
+        });
+
+        Gate::define('checkEndDecision',function(Account $account,$decision_id){
+            return Decision::where('id',$decision_id)
+                        ->where('status','نهائي')
+                        ->exists();
+        });
+
+
+        // 'checkOrderForYou' , $order_id ,$user_id );
+
+        Gate::define('checkOrderForYou',function(Account $account,$order_id){
+            return DecisionOrder::where('id',$order_id)
+                ->where('user_id',$account->user->id)
+                ->exists();
+        });
+
+        Gate::define('isOrderPending',function(Account $account,$order_id){
+            return DecisionOrder::where('id',$order_id)
+                ->where('user_id',$account->user->id)
+                ->where('status_order',Status::PENDING->value)
+                ->exists();
         });
 
 

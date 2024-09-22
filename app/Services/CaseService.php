@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\Representing;
 use App\Enums\SessionStatus;
 use App\Enums\SessionType;
+use App\Enums\Status;
 use App\Enums\StatusCaseInSection;
 use App\Enums\TypeCaseDoc;
 use App\Enums\TypeCourt;
@@ -13,6 +14,8 @@ use App\Models\CaseJudge;
 use App\Models\Cases;
 use App\Models\Court;
 use App\Models\CourtType;
+use App\Models\Decision;
+use App\Models\DecisionOrder;
 use App\Models\Document;
 use App\Models\JudgeSection;
 use App\Models\LawyerCourt;
@@ -344,8 +347,6 @@ class CaseService
             throw new Exception('Error fetching case data from the database.');
         }
     }
-    
-
 
     // رفع ملفات القضية 
     public function uploadeCaseDocs($data){
@@ -423,6 +424,60 @@ class CaseService
         }])
         ->get();
     }
+
+
+    public function addDecisionOrder($data){
+
+        try{
+            $userId = Auth::user()->user->id; 
+            DecisionOrder::create([
+                'decision_id' => $data['decision_id'],
+                'user_id' => $userId ,
+                'type_order' => $data['type_order'],
+                'status_order' => Status::PENDING->value ,
+            ]);
+        }
+        catch(Exception $e){
+            throw new Exception($e->getMessage());
+        }
+    }
+
+    public function getDecisionOrder($order_id){
+        try{
+            return DecisionOrder::where('id',$order_id)
+            ->with('decision')
+            ->first();
+        }
+        catch(Exception $e){
+            throw new Exception($e->getMessage());
+        }
+    }
+
+    // getAllOrder
+    public function getAllOrder($user_id){
+        try{
+            return DecisionOrder::where('user_id',$user_id)
+            ->with('decision')
+            ->get();
+        }
+        catch(Exception $e){
+            throw new Exception($e->getMessage());
+        }
+    }
+    // deleteOrder
+    public function deleteOrder($user_id,$order_id){
+        try{
+            return DecisionOrder::where('id',$order_id)
+                ->where('user_id',$user_id)
+                ->delete();
+        }
+        catch(Exception $e){
+            throw new Exception($e->getMessage());
+        }
+    }
+
+    
+
 
 
 
