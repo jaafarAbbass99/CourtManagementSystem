@@ -8,6 +8,7 @@ require base_path('routes/auth.php');
 require base_path('routes/adminRoutes.php');
 require base_path('routes/lawyerRoutes/lawyerRoutes.php');
 require base_path('routes/JudgeRoutes/judgeRoutes.php');
+require base_path('routes/UserRoutes/userRoutes.php');
 
 
 

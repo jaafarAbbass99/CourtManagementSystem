@@ -11,7 +11,9 @@ use App\Http\Requests\Lawyer\StoreDecisionOrderRequest;
 use App\Http\Requests\OpenCaseByLawyerRequest;
 use App\Http\Requests\ShowCaseByDetailsRequest;
 use App\Http\Requests\StatusCaseCloseOpenRequest;
+use App\Http\Resources\AttorneysCaseResource;
 use App\Http\Resources\Cases\CasesResources;
+use App\Http\Resources\InterestResource;
 use App\Http\Resources\Judge\Show\SessionsCaseResource;
 use App\Http\Resources\Lawyer\CaseInSectionResource as LawyerCaseInSectionResource;
 use App\Http\Resources\Lawyer\DecisionOrderResource;
@@ -188,6 +190,40 @@ class CaseController extends Controller
             $data = $this->caseService->getSessionsCase($case_id,$case_judge_id);
 
             $result = SessionsCaseResource::collection($data);
+            return $this->sendResponse($result);
+            
+        }catch(Exception $e){
+            return $this->sendError(
+                $e->getMessage()
+            );
+        }
+    }
+
+    // عرض التوكيلات مع المحاميين
+    // showAttorneysCase
+    public function showAttorneysCase($case_id)
+    {
+        try{
+
+            $data = $this->caseService->getAttorneysCase($case_id);
+            $result = AttorneysCaseResource::collection($data);
+            return $this->sendResponse($result);
+            
+        }catch(Exception $e){
+            return $this->sendError(
+                $e->getMessage()
+            );
+        }
+    }
+
+    // showInterestes
+    // عرض الاهتمامات 
+    public function showInterestes()
+    {
+        try{
+
+            $data = $this->caseService->getInterestes(Auth::user()->user->id);
+            $result = InterestResource::collection($data);
             return $this->sendResponse($result);
             
         }catch(Exception $e){

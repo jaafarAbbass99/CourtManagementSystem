@@ -6,6 +6,6 @@ namespace App\Enums;
 enum Representing: string
 {
     case PARTY_ONE = 'الطرف الاول' ;
-    case PARTY_TWO = 'الطرف الثاني' ; 
+    case PARTY_TWO = 'الطرف الثاني' ;
     case NOBODY = 'لا احد'; 
 }

@@ -75,5 +75,9 @@ class User extends Model
     {
         return $this->role = Role::ADMIN->value;
     }
+    public function isUser()
+    {
+        return $this->role = Role::USER->value;
+    }
 
 }

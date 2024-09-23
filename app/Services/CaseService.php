@@ -17,6 +17,7 @@ use App\Models\CourtType;
 use App\Models\Decision;
 use App\Models\DecisionOrder;
 use App\Models\Document;
+use App\Models\Interest;
 use App\Models\JudgeSection;
 use App\Models\LawyerCourt;
 use App\Models\PowerOfAttorney;
@@ -423,6 +424,29 @@ class CaseService
             ]);
         }])
         ->get();
+    }
+
+
+ /**
+     * عرض توكيلات الدعوى 
+     * 
+     */
+    public function getAttorneysCase($case_id){
+
+        return PowerOfAttorney::where('case_id',$case_id)
+            ->with(['lawyerInCourt.user' , 'lawyerInCourt.court'])
+            ->get();
+    }
+
+    
+    /**
+     * عرض الاهتمامات  
+     * 
+     */
+    public function getInterestes($user_id){
+        return Interest::where('user_id',$user_id)
+            ->with(['case'])
+            ->get();
     }
 
 

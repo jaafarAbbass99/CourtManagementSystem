@@ -11,6 +11,7 @@ use App\Models\CaseJudge;
 use App\Models\Cases;
 use App\Models\Decision;
 use App\Models\DecisionOrder;
+use App\Models\Interest;
 use App\Models\LawyerCourt;
 use App\Models\PowerOfAttorney;
 use App\Models\RequiredIdeDoc;
@@ -37,6 +38,10 @@ class Gates
 
         Gate::define('isAdmin', function (Account $account) {
             return $account->user->isAdmin() ;
+        });
+
+        Gate::define('isUser', function (Account $account) {
+            return $account->user->isUser();
         });
 
         Gate::define('verified_Lawyer_Judge', function () {
@@ -109,6 +114,20 @@ class Gates
                 ->where('status_order',Status::PENDING->value)
                 ->exists();
         });
+
+
+        Gate::define('isInterestMe',function(Account $account,$interest_id){
+            return Interest::where('id',$interest_id)
+                ->where('user_id',$account->user->id)
+                ->exists();
+        });
+
+        Gate::define('isInterestesCase',function(Account $account,$case_id){
+            return Interest::where('case_id',$case_id)
+                ->where('user_id',$account->user->id)
+                ->exists();
+        });
+
 
 
     }
