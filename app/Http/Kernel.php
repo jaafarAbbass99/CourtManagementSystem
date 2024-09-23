@@ -69,7 +69,9 @@ class Kernel extends HttpKernel
         'check.role.Admin' => \App\Http\Middleware\IsAdmin::class,
         'check.role.Lawyer' => \App\Http\Middleware\IsLawyer::class,
         'check.role.Judge' => \App\Http\Middleware\IsJudge::class,
+        'check.role.User' => \App\Http\Middleware\IsUser::class,
         'check.joined.Lawyer' => \App\Http\Middleware\IsLawyerJoined::class,
+        'check.interesting' => \App\Http\Middleware\checkInteresting::class,
         
         
     ];
