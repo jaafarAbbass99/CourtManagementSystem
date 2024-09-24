@@ -14,6 +14,7 @@ use App\Http\Requests\StatusCaseCloseOpenRequest;
 use App\Http\Resources\AttorneysCaseResource;
 use App\Http\Resources\Cases\CasesResources;
 use App\Http\Resources\InterestResource;
+use App\Http\Resources\Judge\Show\CaseDocResource;
 use App\Http\Resources\Judge\Show\SessionsCaseResource;
 use App\Http\Resources\Lawyer\CaseInSectionResource as LawyerCaseInSectionResource;
 use App\Http\Resources\Lawyer\DecisionOrderResource;
@@ -21,10 +22,15 @@ use App\Http\Resources\Lawyer\SessionWithSectionResource;
 use App\Http\Resources\Lawyer\ShowDetailsCaseResource;
 use App\Models\CaseJudge;
 use App\Models\Cases;
+use App\Models\Interest;
+use App\Models\JudgeSection;
+use App\Models\LawyerCourt;
+use App\Models\PowerOfAttorney;
 use App\Services\CaseService;
 use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use LDAP\Result;
 
 class CaseController extends Controller
 {
@@ -67,6 +73,112 @@ class CaseController extends Controller
             );
         }
     }
+
+    // عرض ملفات الدعوى 
+    // showFilesCase
+    public function showMyFilesCase($case_id)
+    {
+        try{
+            $data = $this->caseService->getFilesCase($case_id,Auth::user()->user->id);
+            $result = CaseDocResource::collection($data);
+            return $this->sendResponse($result,'ملفاتي للقضية');
+            
+        }catch(Exception $e){
+            return $this->sendErrorWithCause(
+                $e->getMessage(),'خطأ في اظهار الملفات'
+            );
+        }
+    }
+
+    // اظهار ملفات القاضي او المحامي التي رفعها لقضية ما
+    public function showFilesCaseByUser($case_id,$user_id)
+    {
+        try{
+            $data = $this->caseService->getFilesCase($case_id,$user_id);
+            $result = CaseDocResource::collection($data);
+            return $this->sendResponse($result,'الملفات');
+            
+        }catch(Exception $e){
+            return $this->sendErrorWithCause(
+                $e->getMessage(),'خطأ في اظهار الملفات'
+            );
+        }
+    }
+
+    
+
+    public function showFilesMyLawyerCase($case_id)
+    {
+        try{
+            $party = Interest::where('case_id',$case_id)
+                ->where('user_id',Auth::user()->user->id)
+                ->value('party');
+            $my_lawyer_id = LawyerCourt::whereHas('cases',function ($q)use($case_id,$party){
+                        $q->where('case_id',$case_id)
+                        ->where('representing',$party);
+                })->value('user_id');
+
+            $data = $this->caseService->getFilesCase($case_id,$my_lawyer_id);
+
+            $result = CaseDocResource::collection($data);
+
+            return $this->sendResponse($result,'الملفات');
+            
+        }catch(Exception $e){
+            return $this->sendErrorWithCause(
+                $e->getMessage(),'خطأ في اظهار الملفات'
+            );
+        }
+    }
+
+
+    //عرض ملفات الخصم 
+    public function showFilesOppLawyerCase($case_id)
+    {
+        try{
+            $party = Interest::where('case_id',$case_id)
+                ->where('user_id',Auth::user()->user->id)
+                ->value('party');
+            $my_lawyer_id = LawyerCourt::whereHas('cases',function ($q)use($case_id,$party){
+                        $q->where('case_id',$case_id)
+                        ->where('representing','!=',$party);
+                })->value('user_id');
+
+            $data = $this->caseService->getFilesCase($case_id,$my_lawyer_id);
+
+            $result = CaseDocResource::collection($data);
+
+            return $this->sendResponse($result,'الملفات');
+            
+        }catch(Exception $e){
+            return $this->sendErrorWithCause(
+                $e->getMessage(),'خطأ في اظهار الملفات'
+            );
+        }
+    } 
+
+
+    // عرض ملفات القاضي لدعوى  مهتم بها 
+    public function showFilesJudgeCaseByCourt($case_id,$court_type_id)
+    {
+        try{
+            $judge_id = JudgeSection::where('court_type_id',$court_type_id)
+                        ->whereHas('cases',function ($q) use($case_id){
+                            $q->where('case_id',$case_id);
+                        })->value('user_id');
+                
+            $data = $this->caseService->getFilesCase($case_id,$judge_id);
+
+            $result = CaseDocResource::collection($data);
+
+            return $this->sendResponse($result,'الملفات');
+            
+        }catch(Exception $e){
+            return $this->sendErrorWithCause(
+                $e->getMessage(),'خطأ في اظهار الملفات'
+            );
+        }
+    } 
 
     // عرض الدعاوى التابعة له في محكمة محددة
     public function showCasesInCourt($court_id)

@@ -13,7 +13,7 @@ class checkInteresting
     public function handle(Request $request, Closure $next): Response
     {
         
-        if (Gate::allows('isInterestesCase',$request->case_id)){
+        if (Gate::denies('isInterestesCase',$request->case_id)){
             return response()->json([
                 'message' => 'انت غير مهتم بالقضية'
             ], 403);
