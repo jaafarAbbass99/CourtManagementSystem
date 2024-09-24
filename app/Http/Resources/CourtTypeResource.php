@@ -12,8 +12,6 @@ class CourtTypeResource extends JsonResource
     {
         return [
             'id' => $this->id ,
-            // 'name' => $this->court->name,
-            // 'province' => $this->court->province,  
             'type' => $this->type,
             'type_form'=> $this->type_form ,
             'city'=> $this->city ,

@@ -24,6 +24,10 @@ Route::middleware(['auth:sanctum','check.role.Judge'])->prefix('/judge')->group(
     
     Route::get('/show-previous-courts/case/{case_id}' , [ShowController::class ,'showPreviousCourtsToCase']);
 
+    Route::get('/show-my-files/case/{case_id}', [CaseController::class, 'showMyFilesCase']);
+
+    Route::get('/show-files/case/{case_id}/lawyer/{user_id}', [CaseController::class, 'showFilesCaseByUser']);
+
 
     // Add-Decision-case
     Route::post('/add-decision-case' , [AddController::class ,'AddDecisionToCase']);

@@ -16,6 +16,11 @@ Route::middleware(['auth:sanctum','check.role.Lawyer'])->prefix('/lawyer')->grou
     
     // اضافة ملفات الى دعوى موجودة
     Route::post('/add-files/case', [CaseController::class, 'addFilesToCase']);
+    // عرض ملفات الدعوى 
+    Route::get('/show-my-files/case/{case_id}', [CaseController::class, 'showMyFilesCase']);
+
+    Route::get('/show-files/case/{case_id}/judge/{user_id}', [CaseController::class, 'showFilesCaseByUser']);
+
     
 
     Route::middleware('check.joined.Lawyer')->group(function () {

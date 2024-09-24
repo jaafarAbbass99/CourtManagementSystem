@@ -188,6 +188,19 @@ class CaseService
     }
 
 
+    // getFilesCase
+    // عرض ملفات الدعوى
+    public function getFilesCase($case_id,$user_id){
+        try{
+            return CaseDoc::where('case_id',$case_id)
+                    ->where('user_id',$user_id)
+                    ->get();
+        }catch(Exception $e){
+                throw new \Exception($e->getMessage());
+            }
+    }
+
+
     // عرض الدعاوى التابعة له في محكمة محددة
     public function getCasesInCourt($courtId)
     {

@@ -23,6 +23,9 @@ Route::middleware(['auth:sanctum','check.role.User'])->prefix('/user')->group(fu
         Route::get('/show-sessions-case/{case_id}/{case_judge_id}' , [CaseController::class ,'showSessionsCase']);
     
         Route::get('/show-attorneys-case/{case_id}' , [CaseController::class ,'showAttorneysCase']);
+
+        Route::get('/show-files-judge-case/{case_id}/court_type/{court_type_id}', [CaseController::class, 'showFilesJudgeCaseByCourt']);
+
         
 
     });
