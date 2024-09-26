@@ -45,7 +45,12 @@ class User extends Model
     {
         return $this->hasMany(Document::class);   
     }
- 
+
+    public function interest() : HasMany 
+    {
+        return $this->hasMany(Interest::class);   
+    }
+
     // public function address(): HasOne
     // {
     //     return $this->hasOne(Address::class);

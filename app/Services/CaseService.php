@@ -9,6 +9,7 @@ use App\Enums\Status;
 use App\Enums\StatusCaseInSection;
 use App\Enums\TypeCaseDoc;
 use App\Enums\TypeCourt;
+use App\Models\AttorneyOrders;
 use App\Models\CaseDoc;
 use App\Models\CaseJudge;
 use App\Models\Cases;
@@ -16,10 +17,12 @@ use App\Models\Court;
 use App\Models\CourtType;
 use App\Models\Decision;
 use App\Models\DecisionOrder;
+use App\Models\defenseOrder;
 use App\Models\Document;
 use App\Models\Interest;
 use App\Models\JudgeSection;
 use App\Models\LawyerCourt;
+use App\Models\order;
 use App\Models\PowerOfAttorney;
 use App\Models\Session;
 use App\Models\Win;
@@ -28,6 +31,7 @@ use Exception;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 class CaseService
 {
@@ -105,6 +109,77 @@ class CaseService
         }
 
     }
+
+    //رفع دعوى لتوكيل
+    // فتح دعوى جديدة
+    public function openCaseForAttorney($data) 
+    {
+        DB::beginTransaction();
+        try{
+            $typeId = Court::whereHas('courtTypes',function ($q){
+                $q->where('type_form',TypeCourt::ST->value);
+            })->where('id',$data['court_id'])->value('id');
+
+            $sectionId  = $this->getSectionByRandom($typeId);
+            
+            $case = Cases::create([
+                'party_one' => $data['party_one'],
+                'party_two' => $data['party_two'],
+                'subject' => $data['subject'],
+                'court_type_id' => $typeId ,
+                'exist_now' => $sectionId ,
+                'case_type_id' => $data['case_type_id'],
+            ]);
+
+            $caseJudge = CaseJudge::create([
+                'case_id' => $case->id ,
+                'judge_section_id' => $sectionId ,
+                'status' => StatusCaseInSection::OPEN->value,
+            ]);
+
+            $attorney = PowerOfAttorney::where('id',$data['attorney_id'])->first();
+            $attorney->case_id = $case->id ;
+            $result = $attorney->save();
+
+            if(!$result)
+                throw new Exception('لم يتم ربط الدعوى بالتوكيل');
+                
+            Win::create([
+                'court_type_id' => $typeId ,
+                'attorney_id' =>$attorney->id ,
+                'get' => 'yet',
+            ]);
+
+            Interest::create([
+                'user_id' => $attorney->order->requester->id,
+                'case_id' => $case->id,
+                'party' => $attorney->representing=='الطرف الاول' ? 1 : 2 ,
+                'is_admin' => true ,
+            ]);
+
+            $account = Auth::user() ;            
+            $this->uploadeCaseDocs([
+                'file' => $data['file'],
+                'summary'=>$data['summary'],
+                'file_type' => TypeCaseDoc::DAWA->value,
+                'court_type_id' => $typeId ,
+                'case_id' => $case->id,
+                'user_id' => $account->user->id,//الشخص يلي رفع الملف (المحامي)
+                'user_name' => $account->user_name,
+                'number_case'=>$caseJudge->full_number,
+            ]);
+            $session = $this->openSession($sectionId, $caseJudge->id);
+
+            DB::commit();
+            return $session;
+
+        }catch(Exception $e){
+            DB::rollBack();
+            throw new \Exception($e->getMessage());
+        }
+
+    }
+ 
 
     public function openSession($sectionId,$case_judge_id){
         //عند القاضي المستلم جلب اخر وقت بعد اسبوع من رفع الحلسة
@@ -187,6 +262,179 @@ class CaseService
             }
     }
 
+    // addDefenseOrder
+    // اضافة طلب دفاع
+    public function addDefenseOrder($case_id,$lawyer_id){
+        DB::beginTransaction();
+        try{
+            $court_id = LawyerCourt::whereHas('powerOfAttorneys',function ($q)use($case_id){
+                $q->where('case_id',$case_id);
+            })->value('court_id');
+
+            if(!$court_id)
+                return throw new Exception('لا يوجد توكيل لهذه القضية');
+
+            $lawyer_court_id = LawyerCourt::where('user_id',$lawyer_id)
+                ->where('court_id',$court_id)
+                ->value('id');
+
+
+            $interest_id = Interest::where('case_id',$case_id)
+                ->where('user_id',Auth::user()->user->id)
+                ->value('id');
+            
+            $childOrder = defenseOrder::create([
+                'interest_id' => $interest_id,
+            ]);
+
+            $childOrder->order()->create([
+                'lawyer_court_id' => $lawyer_court_id,
+                'status_order' => Status::PENDING->value,
+            ]);
+            
+            DB::commit();
+            return $childOrder ;
+
+        }catch(Exception $e){
+                DB::rollBack();
+                throw new \Exception($e->getMessage());
+            }
+    }
+
+    // addAttorneyOrder
+    // اضافة طلب توكيل
+    public function addAttorneyOrder($user_id,$lawyer_id,$court_id){
+        DB::beginTransaction();
+        try{
+            $lawyer_court_id = LawyerCourt::where('user_id',$lawyer_id)
+                ->where('court_id',$court_id)
+                ->value('id');
+            if(!$lawyer_court_id)
+                return throw new Exception('لا  يوجد محامي في هذه المحكمة بهذاالرقم');
+            $check =  AttorneyOrders::where('user_id',$user_id)
+                        ->whereHas('order',function ($q)use($lawyer_court_id){
+                            $q->where('lawyer_court_id' , $lawyer_court_id);
+                        })->exists();
+            if($check)
+                return throw new Exception('هذا التوكيل موجود');
+
+            $childOrder = AttorneyOrders::create([
+                'user_id' => $user_id // مقدم الطلب 
+            ]);
+
+            $childOrder->order()->create([
+                'lawyer_court_id' => $lawyer_court_id,
+                'status_order' => Status::PENDING->value,
+            ]);
+            DB::commit();
+            return $childOrder ;
+
+            
+        }catch(Exception $e){
+                DB::rollBack();
+                return throw new \Exception($e->getMessage());
+            }
+    }
+
+
+    // تاكيد طلب القبول دفاع
+    // oKAttorneyOrder
+    public function oKDefenseOrder($data){
+        try{
+            if(Gate::allows('isAttorneyExest',[$data['lawyerCourt_id'],$data['case_id']]))
+                throw new \Exception('التوكيل موجود');
+            return PowerOfAttorney::create($data);
+        }catch(Exception $e){
+                throw new \Exception($e->getMessage());
+            }
+    }
+
+    // تاكيد طلب القبول توكيل
+    // oKAttorneyOrder
+    public function oKAttorneyOrder($data){
+        try{
+            if(Gate::allows('isAttorneyExest',[$data['order_id']]))
+                throw new \Exception('التوكيل موجود');
+
+            return PowerOfAttorney::create($data);
+        }catch(Exception $e){
+                throw new \Exception($e->getMessage());
+            }
+    }
+
+    // cancelDefenseOrder
+    //الغاء طلب الدفاع
+    public function cancelDefenseOrder($order_id){
+        DB::beginTransaction();
+        try{
+            if(Gate::denies('isAbleCancelOrder',[$order_id]))
+                return throw new Exception('الطلب معالج');
+
+            $child = defenseOrder::whereHas('order',function ($q)use($order_id){
+                        $q->where('id',$order_id);
+                    })->first();
+            $child->order->delete();
+            $child->delete();
+            DB::commit();
+            return true;
+        }catch(Exception $e){
+                throw new \Exception($e->getMessage());
+            }
+    }
+
+    // cancelAttorneyOrder
+    // الغاء طلب التوكيل
+    public function cancelAttorneyOrder($user_id,$order_id){
+        DB::beginTransaction();
+        try{
+            
+            $child = AttorneyOrders::where('user_id',$user_id)
+                    ->whereHas('order',function ($q)use($order_id){
+                        $q->where('id',$order_id);
+                    })->first();
+            $child->order->delete();
+            $child->delete();
+            DB::commit();
+            return true;
+        }catch(Exception $e){
+            DB::rollBack();
+                throw new \Exception($e->getMessage());
+            }
+    }
+
+    // اظهار طلبات الدفاع لدعوى مهتم بها (user)
+    public function getDefenseOrdersinterestsCase($case_id){
+        return defenseOrder::with([
+            'order',
+            'order.lawyerUser'
+        ])->whereHas('interest', function ($q) use($case_id) {
+            $q->where('is_admin', true )
+            ->where('case_id',$case_id);
+        })
+        ->get();
+    }
+
+    // اظهار طلباتي التوكيل لدعوى مهتم بها (user)
+    public function getAttorneyOrdersinterestsCase($case_id){
+        return AttorneyOrders::with([
+            'order',
+            'order.lawyerUser'
+        ])->whereHas('user.interest', function ($q) use($case_id) {
+            $q->where('is_admin', true )
+            ->where('case_id',$case_id);
+        })
+        ->get();
+
+    }
+
+    // عرض طلباتي التوكيل
+    public function getAttorneyOrders($user_id){
+        return AttorneyOrders::with([
+            'order',
+            'order.lawyerUser'
+        ])->where('user_id',$user_id)
+        ->get();
+    }
 
     // getFilesCase
     // عرض ملفات الدعوى
@@ -215,10 +463,32 @@ class CaseService
     public function getAllCases($lawyerId)
     {
         $lawyerCourts = LawyerCourt::where('user_id',$lawyerId)
-                    ->pluck('id');
+                    ->pluck('id');  
         return PowerOfAttorney::whereIn('lawyerCourt_id',$lawyerCourts)
-                        ->with('case')->get();
+        ->with('case')->get();
     }
+
+    // getAllAttorney
+    public function getAllAttorney($lawyerId)
+    {
+        $lawyerCourt = LawyerCourt::where('user_id',$lawyerId)
+                    ->pluck('id');
+
+        return PowerOfAttorney::whereIn('lawyerCourt_id',$lawyerCourt)
+        ->with('order.requester')->get();   
+    }
+
+    public function getAllAttorneyInCourt($lawyerId,$courtId)
+    {
+        $lawyerCourt = LawyerCourt::where('user_id',$lawyerId)
+                    ->where('court_id',$courtId)
+                    ->value('id');
+
+        return PowerOfAttorney::where('lawyerCourt_id',$lawyerCourt)
+        ->with('order.requester')->get(); 
+    }
+
+
     
     // عرض دعوى واحدة في محكمة واحدة 
     public function getCaseInCourt($caseId){

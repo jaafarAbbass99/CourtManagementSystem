@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('power_of_attorneys', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('case_id'); 
+            $table->unsignedBigInteger('case_id')->nullable(); 
+            $table->foreignId('order_id')->unique()->constrained('orders')->onDelete('cascade'); 
             $table->unsignedBigInteger('lawyerCourt_id'); 
             $table->enum('representing', ['الطرف الاول', 'الطرف الثاني']);
            

@@ -66,8 +66,18 @@ Route::middleware(['auth:sanctum','check.role.Lawyer'])->prefix('/lawyer')->grou
 
     Route::delete('/delete-order/{order_id}' , [CaseController::class ,'deleteOrder']);
 
+    // 25-9
+    //   عرض كل التوكيلات المستلمة
+    Route::get('/show-my-received-attorney', [CaseController::class, 'showMyReceivedAttorney']);
 
+    // رفع دعوى لتوكيل
+    Route::post('/open-case-for-attorney', [CaseController::class, 'openCaseForAttorney']);
 
+    // معالجة طلبات التوكيل
+    Route::post('/accept-attorney-order/{order_id}' , [CaseController::class ,'acceptPowAttOrder']);
+    Route::post('/reject-attorney-order/{order_id}' , [CaseController::class ,'rejectPowAttOrder']);
+    Route::get('/show-attorney-orders' , [CaseController::class ,'showAttOrders']);
+    Route::get('/show-defense-orders' , [CaseController::class ,'showDefOrders']);
 
 
 

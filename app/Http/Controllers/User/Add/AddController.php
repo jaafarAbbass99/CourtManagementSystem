@@ -5,7 +5,7 @@ namespace App\Http\Controllers\User\Add;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\Add\AddInterestedCaseRequest;
-use App\Http\Requests\User\Add\cansleInterestedCaseRequest;
+use App\Http\Requests\User\Add\cancelInterestedCaseRequest;
 use App\Services\User\Add\AddInterestedService;
 use Exception;
 use Illuminate\Http\Request;
@@ -34,10 +34,10 @@ class AddController extends Controller
     }
 
     // canselInterestedCase
-    public function canselInterestedCase(cansleInterestedCaseRequest $request)
+    public function cancelInterestedCase(cancelInterestedCaseRequest $request)
     {
         try{
-            $data = $this->interestedService->canselInterested($request->interest_id);
+            $data = $this->interestedService->cancelInterested($request->interest_id);
             if($data)
                 return $this->sendOkResponse('تم الغاء الاهتمام بالقضية');
         }catch(Exception $e){
