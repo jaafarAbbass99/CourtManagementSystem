@@ -2,17 +2,21 @@
 
 namespace App\Gates\EnterGates;
 
+use App\Enums\Party;
 use App\Enums\Role;
 use App\Enums\SessionStatus;
 use App\Enums\Status;
 use App\Enums\StatusCaseInSection;
 use App\Models\Account;
+use App\Models\AttorneyOrders;
 use App\Models\CaseJudge;
 use App\Models\Cases;
 use App\Models\Decision;
 use App\Models\DecisionOrder;
+use App\Models\defenseOrder;
 use App\Models\Interest;
 use App\Models\LawyerCourt;
+use App\Models\order;
 use App\Models\PowerOfAttorney;
 use App\Models\RequiredIdeDoc;
 use App\Models\Session;
@@ -121,14 +125,111 @@ class Gates
                 ->where('user_id',$account->user->id)
                 ->exists();
         });
-
+        
         Gate::define('isInterestesCase',function(Account $account,$case_id){
             return Interest::where('case_id',$case_id)
                 ->where('user_id',$account->user->id)
                 ->exists();
         });
 
+        Gate::define('isIRepresentForCase',function(Account $account,$case_id,Party $party){
+            return Interest::where('case_id',$case_id)
+                ->where('user_id',$account->user->id)
+                ->where('party',$party->value)
+                ->exists();
+        });
+
+        Gate::define('isAbleAttorneys',function(Account $account,$case_id){
+            return Interest::where('case_id',$case_id)
+                ->where('user_id',$account->user->id)
+                ->where('is_admin',1)
+                ->exists();
+        });
+
+        Gate::define('isInterestAsPartyTwo',function(Account $account,$case_id){
+            return Interest::where('case_id',$case_id)
+                ->where('user_id',$account->user->id)
+                ->where('party',Party::PARTY_TWO->value)
+                ->exists();
+        });
+
+        Gate::define('isInterestAsPartyOne',function(Account $account,$case_id){
+            return Interest::where('case_id',$case_id)
+                ->where('user_id',$account->user->id)
+                ->where('party',Party::PARTY_ONE->value)
+                ->exists();
+        });
+        //26 
+        Gate::define('isDefenseOrderForMe',function(Account $account, $order_id){
+            return  defenseOrder::whereHas('order',function ($q)use($order_id){
+                        $q->where('id',$order_id);
+                    })->whereHas('interest',function ($q) use($account){
+                        $q->where('user_id',$account->user->id)
+                        ->where('is_admin',true);
+                    })->exists();
+        });
 
 
+        Gate::define('isAttorneyOrderForMe',function(Account $account, $order_id){
+            
+            return AttorneyOrders::where('user_id',$account->user->id)
+                    ->whereHas('order',function ($q)use($order_id){
+                        $q->where('id',$order_id);
+                    })
+                    ->exists();
+        });
+
+        Gate::define('isAttorneyOrderForMeAndAbleCancel',function(Account $account, $order_id){
+            return AttorneyOrders::where('user_id',$account->user->id)
+                    ->whereHas('order',function ($q)use($order_id){
+                        $q->where('id',$order_id)
+                        ->where('status_order',Status::PENDING->value);
+                    })
+                    ->exists();
+        });
+
+        
+        Gate::define('isDefenseOrderForMeAndAbleCancel',function(Account $account, $order_id){
+            return  defenseOrder::whereHas('order',function ($q)use($order_id){
+                $q->where('id',$order_id)
+                ->where('status_order',Status::PENDING->value);
+            })->whereHas('interest',function ($q) use($account){
+                $q->where('user_id',$account->user->id)
+                ->where('is_admin',true);
+            })->exists();
+        });
+
+        Gate::define('isDefenseExest',function(Account $account, $lowyer_court_id , $case_id){
+            return PowerOfAttorney::where('case_id',$case_id)
+                    ->where('lawyerCourt_id',$lowyer_court_id)
+                    ->exists();
+        });
+
+        Gate::define('isAttorneyExest',function(Account $account, $order_id){
+            return PowerOfAttorney::where('order_id',$order_id)
+                    ->exists();
+        });
+        
+        Gate::define('isAbleCancelOrder',function(Account $account, $order_id){
+            return order::where('id',$order_id)
+                ->where('status_order',Status::PENDING->value)
+                ->exists();
+        });
+
+        Gate::define('isLawyerTakeCase',function(Account $account,$case_id,$lawyer_id){
+            return PowerOfAttorney::where('case_id',$case_id)
+                    ->whereHas('lawyerInCourt',function ($q) use($lawyer_id){
+                        $q->where('user_id',$lawyer_id);
+                    })
+                    ->exists();
+        });
+
+        
+        Gate::define('isAbleOkOrder',function(Account $account, $order_id){
+            return order::where('id',$order_id)
+                ->where('status_order',Status::APPROVED->value)
+                ->exists();
+        });
+        
     }
 }

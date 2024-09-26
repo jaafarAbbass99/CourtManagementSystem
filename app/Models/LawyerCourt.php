@@ -26,7 +26,12 @@ class LawyerCourt extends Model
 
     public function powerOfAttorneys()
     {
-        return $this->hasMany(PowerOfAttorney::class, 'lawyer_id');
+        return $this->hasMany(PowerOfAttorney::class, 'lawyerCourt_id');
+    }
+
+    public function AttorneyOrders()
+    {
+        return $this->hasMany(AttorneyOrders::class, 'lawyer_court_id');
     }
 
     public function cases()

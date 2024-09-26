@@ -30,4 +30,11 @@ class Interest extends Model
     {
         return $this->belongsTo(Cases::class);
     }
+
+    // AttorneyOrders
+    public function defenseOrders()
+    {
+        return $this->hasMany(defenseOrder::class, 'interest_id');
+    }
+
 }

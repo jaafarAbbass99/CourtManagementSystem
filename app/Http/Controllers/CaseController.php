@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Party;
+use App\Enums\Representing;
+use App\Enums\Status;
 use App\Http\Requests\AddFilesToCaseRequest;
 use App\Http\Requests\CaseJudgeIdRequest;
 use App\Http\Requests\Lawyer\DeleteDecisionOrderRequest;
@@ -11,23 +14,39 @@ use App\Http\Requests\Lawyer\StoreDecisionOrderRequest;
 use App\Http\Requests\OpenCaseByLawyerRequest;
 use App\Http\Requests\ShowCaseByDetailsRequest;
 use App\Http\Requests\StatusCaseCloseOpenRequest;
+use App\Http\Requests\User\Add\AddAttorneyOrderRequest;
+use App\Http\Requests\User\Add\AddDefenseOrderRequest;
+use App\Http\Requests\User\Add\cancelAttorneyOrderRequest;
+use App\Http\Requests\User\Add\cancelDefenseOrderRequest;
+use App\Http\Requests\User\Add\OkAttorneyOrderRequest;
+use App\Http\Requests\User\Add\OkDefenseOrderRequest;
+use App\Http\Resources\AttorneyOrderResource;
 use App\Http\Resources\AttorneysCaseResource;
 use App\Http\Resources\Cases\CasesResources;
+use App\Http\Resources\DefenseOrderResource;
 use App\Http\Resources\InterestResource;
 use App\Http\Resources\Judge\Show\CaseDocResource;
 use App\Http\Resources\Judge\Show\SessionsCaseResource;
+use App\Http\Resources\Lawyer\AttorneyOrderResource as LawyerAttorneyOrderResource;
 use App\Http\Resources\Lawyer\CaseInSectionResource as LawyerCaseInSectionResource;
 use App\Http\Resources\Lawyer\DecisionOrderResource;
+use App\Http\Resources\Lawyer\DefenseOrderResource as LawyerDefenseOrderResource;
+use App\Http\Resources\Lawyer\MyAttorneyResource;
 use App\Http\Resources\Lawyer\SessionWithSectionResource;
 use App\Http\Resources\Lawyer\ShowDetailsCaseResource;
+use App\Http\Resources\OrderAttorneyResource;
+use App\Models\AttorneyOrders;
 use App\Models\CaseJudge;
 use App\Models\Cases;
+use App\Models\defenseOrder;
 use App\Models\Interest;
 use App\Models\JudgeSection;
 use App\Models\LawyerCourt;
+use App\Models\order;
 use App\Models\PowerOfAttorney;
 use App\Services\CaseService;
 use Exception;
+use Illuminate\Contracts\Auth\Access\Gate as AccessGate;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use LDAP\Result;
@@ -48,6 +67,22 @@ class CaseController extends Controller
         try{
             
             $data = $this->caseService->openCase($request->all());
+            $result = SessionWithSectionResource::make($data);
+            if($data)
+                return $this->sendResponse($result,'تم فتح الدعوى بنجاح.') ;
+            
+        }catch(Exception $e){
+            return $this->sendErrorWithCause(
+                $e->getMessage(),'خطأ في فتح دعوى'
+            );
+        }
+    }
+
+    // فتح دعوى لتوكيل 
+    public function openCaseForAttorney(OpenCaseByLawyerRequest $request)
+    {
+        try{
+            $data = $this->caseService->openCaseForAttorney($request->all());
             $result = SessionWithSectionResource::make($data);
             if($data)
                 return $this->sendResponse($result,'تم فتح الدعوى بنجاح.') ;
@@ -178,7 +213,193 @@ class CaseController extends Controller
                 $e->getMessage(),'خطأ في اظهار الملفات'
             );
         }
-    } 
+    }
+
+    // showDefenseOrdersInterestCase
+    // اظهار طلبات الدفاع لدعوى ما 
+    public function showDefenseOrdersInterestCase($case_id)
+    {
+        try{
+            $data = $this->caseService->getDefenseOrdersinterestsCase($case_id);
+            $result = DefenseOrderResource::collection($data);
+            return $this->sendResponse($result,'طلبات الدفاع');
+            
+        }catch(Exception $e){
+            return $this->sendErrorWithCause(
+                $e->getMessage(),'خطأ في اظهار طلبات الدفاع'
+            );
+        }
+    }
+
+    //showAttorneyOrdersInterestCase
+    // لدعوى ما اظهار طلبات التوكيل   
+    public function showAttorneyOrdersInterestCase($case_id)
+    {
+        try{
+            $data = $this->caseService->getAttorneyOrdersinterestsCase($case_id);
+            $result = DefenseOrderResource::collection($data);
+            return $this->sendResponse($result,'طلبات التوكيل');
+            
+        }catch(Exception $e){
+            return $this->sendErrorWithCause(
+                $e->getMessage(),'خطأ في اظهار طلبات التوكيل'
+            );
+        }
+    }
+
+    //showAttorneyOrders
+    // اظهار طلبات التوكيل   
+    public function showAttorneyOrders()
+    {
+        try{
+            $data = $this->caseService->getAttorneyOrders(Auth::user()->user->id);
+            $result = DefenseOrderResource::collection($data);
+            return $this->sendResponse($result,'طلبات التوكيل');
+            
+        }catch(Exception $e){
+            return $this->sendErrorWithCause(
+                $e->getMessage(),'خطأ في اظهار طلبات التوكيل'
+            );
+        }
+    }
+    
+
+    
+    // addDefenseOrder
+    //اضافة طلب دفاع  
+    public function addDefenseOrder(AddDefenseOrderRequest $request)
+    {
+        try{
+            if(Gate::denies('isAbleAttorneys',$request->case_id))
+                return $this->sendError('ليس لديك صلاحية توكيل');
+
+            if(Gate::denies('isIRepresentForCase',[$request->case_id,Party::PARTY_TWO]))
+                return $this->sendError('لا تمثل الطرف الثاني');
+
+            $data = $this->caseService->addDefenseOrder($request->case_id,$request->lawyer_id);
+            if($data)
+                return $this->sendOKResponse('تم اضافة الطلب بنجاح.') ;
+            
+        }catch(Exception $e){
+            return $this->sendErrorWithCause(
+                $e->getMessage(),'خطأ في اضافة طلب الدفاع'
+            );
+        }
+    }
+
+
+    // ddAttorneyOrder
+    // اضافة طلب توكيل للمحامي
+    public function addAttorneyOrder(AddAttorneyOrderRequest $request)
+    {
+        try{
+            $data = $this->caseService->addAttorneyOrder(Auth::user()->user->id,$request->lawyer_id,$request->court_id);
+            if($data)
+                return $this->sendOKResponse('تم اضافة الطلب بنجاح.') ;
+            
+        }catch(Exception $e){
+            return $this->sendErrorWithCause(
+                $e->getMessage(),'خطأ في اضافة طلب التوكيل'
+            );
+        }
+    }
+    
+    // oKAttorneyOrder
+    // تأكيد طلب دفاع لاستلامها المحامي
+    public function oKDefenseOrder(OkDefenseOrderRequest $request)
+    {
+        try{
+            $order = order::where('id',$request->order_id)
+                ->with('orderable')
+                ->first();
+            if($order->status_order->value != Status::APPROVED->value)
+                return $this->sendError('الطلب '.__('status.'.$order->status_order->value));
+
+            $interest = Interest::whereHas('defenseOrders',function ($q)use($order){
+                $q->where('interest_id',$order->orderable->interest_id);
+            })->first();
+            
+            if($interest->party = 2)
+                $rep = Representing::PARTY_TWO->value;
+            else
+                $rep = Representing::PARTY_ONE->value;
+
+            $data = $this->caseService->oKAttorneyOrder([
+                'lawyerCourt_id' => $order->lawyer_court_id,
+                'case_id' => $interest->case_id,
+                'representing' => $rep ,
+                'order_id' => $order->id
+            ]);
+
+            if($data)
+                return $this->sendOKResponse('تم تأكيد الطلب بنجاح.') ;
+            
+        }catch(Exception $e){
+            return $this->sendErrorWithCause(
+                $e->getMessage(),'خطأ في تأكيد طلب الدفاع'
+            );
+        }
+    }
+
+    // oKAttorneyOrder
+    // تأكيد طلب توكيل لاستلامها المحامي
+    public function oKAttorneyOrder(OkAttorneyOrderRequest $request)
+    {
+        try{
+            $order = order::where('id',$request->order_id)
+                ->first();
+            if($order->status_order->value != Status::APPROVED->value)
+                return $this->sendError('الطلب '.__('status.'.$order->status_order->value));    
+            
+            $data = $this->caseService->oKAttorneyOrder([
+                'lawyerCourt_id' => $order->lawyer_court_id,
+                'representing' => Representing::PARTY_ONE->value,
+                'order_id' => $order->id,
+            ]);
+
+            if($data)
+                return $this->sendOKResponse('تم تأكيد الطلب بنجاح.') ;
+            
+        }catch(Exception $e){
+            return $this->sendErrorWithCause(
+                $e->getMessage(),'خطأ في تأكيد طلب التوكيل'
+            );
+        }
+    }
+
+
+    // cancelDefenseOrder
+    //الغاء طلب الدفاع
+    public function cancelDefenseOrder(cancelDefenseOrderRequest $request)
+    {
+        try{
+            $data =$this->caseService->cancelDefenseOrder($request->order_id);
+            if(!$data)
+                return $this->sendError('لم يتم الغاء الطلب');
+            return $this->sendOkResponse(' يتم الغاء الطلب');
+        }catch(Exception $e){
+            return $this->sendErrorWithCause(
+                $e->getMessage(),'خطأ في تأكيد طلب الدفاع'
+            );
+        }
+    }
+
+    // cancelAttorneyOrder
+    // الغاء طلب التوكيل
+    public function cancelAttorneyOrder(cancelAttorneyOrderRequest $request)
+    {
+        try{            
+            $data =$this->caseService->cancelAttorneyOrder(Auth::user()->user->id,$request->order_id);
+            if(!$data)
+                return $this->sendError('لم يتم الغاء الطلب');
+            return $this->sendOkResponse(' تم الغاء الطلب');
+        }catch(Exception $e){
+            return $this->sendErrorWithCause(
+                $e->getMessage(),'خطأ في تأكيد طلب التوكيل'
+            );
+        }
+    }
+
 
     // عرض الدعاوى التابعة له في محكمة محددة
     public function showCasesInCourt($court_id)
@@ -194,8 +415,26 @@ class CaseController extends Controller
     public function showAllCases()
     {
         $cases = $this->caseService->getAllCases(auth()->user()->user->id);
+        
         $result =  CasesResources::collection($cases);
         return $this->sendResponse($result,'جميع الدعاوى في كل محاكمي');
+    }
+
+    // showMyReceivedAttorney
+    // اظهار كل توكيلاتي المستلمة
+    public function showMyReceivedAttorney()
+    {
+        $attorneys = $this->caseService->getAllAttorney(auth()->user()->user->id);
+        $result =  MyAttorneyResource::collection($attorneys);
+        return $this->sendResponse($result,'جميع توكيلاتي في كل محاكمي');
+    }
+
+    // اظهار كل توكيلاتي المستلمة في محكمة ما
+    public function showMyReceivedAttorneyInCourt($court_id)
+    {
+        $attorneys = $this->caseService->getAllAttorneyInCourt(auth()->user()->user->id,$court_id);
+        $result =  MyAttorneyResource::collection($attorneys);
+        return $this->sendResponse($result,'جميع توكيلاتي في محكمة');
     }
 
     // عرض دعوى معينة حسب اسم المدعي والعام والمحكمة
@@ -428,4 +667,82 @@ class CaseController extends Controller
             );
         }
     }
+
+     // عرض طلبات التوكيل
+    public function showAttOrders(){
+        try{
+            $orders = order::where('orderable_type',AttorneyOrders::class)
+            ->whereHas('lawyerUser',function ($q) {
+                $q->where('user_id',Auth::user()->user->id);
+            })->with('requester')
+            ->get();
+            return LawyerAttorneyOrderResource::collection($orders); 
+        }catch(Exception $e){
+            return $this->sendErrorWithCause(
+                $e->getMessage(),'الطلبات: '
+            );
+        }
+    }
+     // عرض طلبات الدفاع
+     public function showDefOrders(){
+        try{
+            $orders = order::where('orderable_type',defenseOrder::class)
+            ->whereHas('lawyerUser',function ($q) {
+                $q->where('user_id',Auth::user()->user->id);
+            })->with('interest.case')
+            ->get();
+            return LawyerDefenseOrderResource::collection($orders); 
+            return $orders ;
+        }catch(Exception $e){
+            return $this->sendErrorWithCause(
+                $e->getMessage(),'الطلبات: '
+            );
+        }
+    }
+
+    // قبول الطلب التوكيل
+    public function acceptPowAttOrder($order_id){
+        try{
+            $order = order::where('id',$order_id)
+                    ->where('status_order' , Status::REJECTED->value)
+                    ->exists();
+            if($order)
+                return $this->sendError('الطلب مرفوض');
+
+            $result = order::where('id',$order_id)
+                ->update(['status_order'=>Status::APPROVED->value]);
+            if(!$result)
+                return $this->sendError('لم يتم قبول الطلب');
+            
+            return $this->sendError('لم تم قبول الطلب');
+
+        }catch(Exception $e){
+            return $this->sendErrorWithCause(
+                $e->getMessage(),'خطأ في قبول الطلب '
+            );
+        }
+    }
+    public function rejectPowAttOrder($order_id){
+        try{
+            $order = order::where('id',$order_id)
+                    ->where('status_order' , Status::APPROVED->value)
+                    ->exists();
+            if($order)
+                return $this->sendError('الطلب مقبول');
+
+            $result = order::where('id',$order_id)
+                ->update(['status_order'=>Status::REJECTED->value]);
+            if(!$result)
+                return $this->sendError('لم يتم قبول الطلب');
+            
+            return $this->sendError('لم تم قبول الطلب');
+
+        }catch(Exception $e){
+            return $this->sendErrorWithCause(
+                $e->getMessage(),'خطأ في رفض الطلب'
+            );
+        }
+    }
+
+
 }

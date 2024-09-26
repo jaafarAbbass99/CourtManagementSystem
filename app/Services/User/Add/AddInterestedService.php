@@ -22,7 +22,7 @@ class AddInterestedService
         }
     }
 
-    public function canselInterested($interest_id)
+    public function cancelInterested($interest_id)
     {   
         try{
             return Interest::where('id',$interest_id)
