@@ -14,6 +14,7 @@ use App\Models\Cases;
 use App\Models\Decision;
 use App\Models\DecisionOrder;
 use App\Models\defenseOrder;
+use App\Models\Dewan;
 use App\Models\Interest;
 use App\Models\LawyerCourt;
 use App\Models\order;
@@ -46,6 +47,10 @@ class Gates
 
         Gate::define('isUser', function (Account $account) {
             return $account->user->isUser();
+        });
+
+        Gate::define('isEmployee', function (Account $account) {
+            return $account->user->isEmployee();
         });
 
         Gate::define('verified_Lawyer_Judge', function () {
@@ -230,6 +235,14 @@ class Gates
                 ->where('status_order',Status::APPROVED->value)
                 ->exists();
         });
-        
+
+        // IsEmployeeInCourtCase
+        Gate::define('IsEmployeeInCourtCase',function(Account $account, $interest_id){
+            $dewan = Dewan::where('user_id',$account->user->id)->first();
+            return Interest::whereHas('case.now',function ($q)use($dewan){
+                        $q->where('court_type_id',$dewan->court_type_id);
+                })->where('id',$interest_id)
+            ->exists();
+        });
     }
 }

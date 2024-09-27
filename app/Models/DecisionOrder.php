@@ -25,6 +25,11 @@ class DecisionOrder extends Model
         'status_order' => Status::class ,
     ];
 
+    public function processOrder()
+    {
+        return $this->hasMany(DewanOrder::class ,'dewan_id');
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -34,5 +39,7 @@ class DecisionOrder extends Model
     {
         return $this->belongsTo(Decision::class);
     }
+
+
     
 }

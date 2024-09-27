@@ -69,7 +69,7 @@ class CaseController extends Controller
             $data = $this->caseService->openCase($request->all());
             $result = SessionWithSectionResource::make($data);
             if($data)
-                return $this->sendResponse($result,'تم فتح الدعوى بنجاح.') ;
+                return $this->sendResponse($result,'تم فتح الدعوى بنجاح.');
             
         }catch(Exception $e){
             return $this->sendErrorWithCause(
@@ -623,7 +623,7 @@ class CaseController extends Controller
 
             $data = $this->caseService->getDecisionOrder($decision_order_id);
             if(!$data)
-                return $this->sendError('لا يوجد طلب');
+                return $this->sendOkResponse('لا يوجد طلب');
             
             $result = DecisionOrderResource::make($data);
             return $this->sendResponse($result);
@@ -640,8 +640,8 @@ class CaseController extends Controller
         try{
 
             $data = $this->caseService->getAllOrder(Auth::user()->user->id);
-            $result = DecisionOrderResource::collection($data);
 
+            $result = DecisionOrderResource::collection($data);
             return $this->sendResponse($result);
             
         }catch(Exception $e){

@@ -10,6 +10,7 @@ require base_path('routes/adminRoutes.php');
 require base_path('routes/lawyerRoutes/lawyerRoutes.php');
 require base_path('routes/JudgeRoutes/judgeRoutes.php');
 require base_path('routes/UserRoutes/userRoutes.php');
+require base_path('routes/EmployeeRoutes/employeeRoutes.php');
 
 
 Route::get('/show-type_court/{court_id}' , [ShowController::class ,'showTypeCourt']);
