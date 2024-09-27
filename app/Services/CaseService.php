@@ -116,9 +116,11 @@ class CaseService
     {
         DB::beginTransaction();
         try{
-            $typeId = Court::whereHas('courtTypes',function ($q){
-                $q->where('type_form',TypeCourt::ST->value);
-            })->where('id',$data['court_id'])->value('id');
+
+            $typeId = CourtType::where('type_form',TypeCourt::ST->value)
+            ->whereHas('court' , function ($q)use($data){
+                $q->where('id',$data['court_id']);
+            })->value('id');
 
             $sectionId  = $this->getSectionByRandom($typeId);
             

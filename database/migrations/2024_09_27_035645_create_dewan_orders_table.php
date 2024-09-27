@@ -11,14 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('dewans', function (Blueprint $table) {
+        Schema::create('dewan_orders', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->foreignId('user_id')->unique()->constrained('users')->onDelete('cascade'); 
-            $table->foreignId('court_type_id')->constrained('court_types')->onDelete('cascade'); 
+            $table->foreignId('dewan_id')->constrained('dewans')->onDelete('cascade');
+            $table->foreignId('decision_order_id')->constrained('decision_orders')->onDelete('cascade');
 
             $table->timestamps();
         });
+
     }
 
     /**
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('dewans');
+        Schema::dropIfExists('dewan_orders');
     }
 };

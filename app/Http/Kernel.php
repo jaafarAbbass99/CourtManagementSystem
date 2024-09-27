@@ -70,12 +70,13 @@ class Kernel extends HttpKernel
         'check.role.Lawyer' => \App\Http\Middleware\IsLawyer::class,
         'check.role.Judge' => \App\Http\Middleware\IsJudge::class,
         'check.role.User' => \App\Http\Middleware\IsUser::class,
+        'check.role.Employee' => \App\Http\Middleware\IsEmployee::class,
         'check.joined.Lawyer' => \App\Http\Middleware\IsLawyerJoined::class,
         'check.interesting' => \App\Http\Middleware\checkInteresting::class,
         'check.isAdminInterest' =>\App\Http\Middleware\isAdminInterest::class,
         'check.InterestAsPartyTwo' =>\App\Http\Middleware\isInterestPartyTwo::class,
         'check.InterestAsPartyOne' =>\App\Http\Middleware\isInterestPartyOne::class,
-        
+        // 
         
     ];
 }
